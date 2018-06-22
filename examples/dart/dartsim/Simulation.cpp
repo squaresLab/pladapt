@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -235,7 +235,8 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 		monitoringInfo.ecm = currentConfig.getEcm();
 
 		/* monitor environment */
-		Route senseRoute(position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
+    assert(params.longRangeSensor.OBSERVATION_HORIZON != 0);
+    Route senseRoute(position, monitoringInfo.directionX, monitoringInfo.directionY, params.longRangeSensor.OBSERVATION_HORIZON);
 		envThreatMonitor.clear();
 		envThreatMonitor.sense(threatEnv, params.longRangeSensor.THREAT_OBSERVATIONS_PER_CYCLE, senseRoute);
 		envTargetMonitor.clear();

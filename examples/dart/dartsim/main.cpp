@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -44,7 +44,8 @@ enum ARGS {
 	TARGET_SENSOR_FNR,
 	DL_TARGET_SENSOR_RANGE,
 	AUTO_RANGE,
-	LOOKAHEAD_HORIZON,
+	PLANNING_HORIZON,
+	OBSERVATION_HORIZON,
 	REACH_PATH,
 	REACH_MODEL,
 	DISTRIB_APPROX,
@@ -83,7 +84,8 @@ static struct option long_options[] = {
     {"target-sensor-fnr",  required_argument, 0,  TARGET_SENSOR_FNR },
 	{"dl-target-sensor-range", required_argument, 0,  DL_TARGET_SENSOR_RANGE },
 	{"auto-range", no_argument, 0,  AUTO_RANGE },
-    {"lookahead-horizon",  required_argument, 0,  LOOKAHEAD_HORIZON },
+    {"planning-horizon",  required_argument, 0,  PLANNING_HORIZON },
+		{"observation-horizon", required_argument, 0, OBSERVATION_HORIZON},
     {"reach-path",  required_argument, 0,  REACH_PATH },
     {"reach-model",  required_argument, 0,  REACH_MODEL },
 	{"distrib-approx", required_argument, 0, DISTRIB_APPROX },
@@ -174,8 +176,11 @@ int main(int argc, char** argv) {
 		case AUTO_RANGE:
 			autoRange = true;
 			break;
-		case LOOKAHEAD_HORIZON:
+		case PLANNING_HORIZON:
 			adaptParams.adaptationManager.HORIZON = atoi(optarg);
+			break;
+		case OBSERVATION_HORIZON:
+			adaptParams.longRangeSensor.OBSERVATION_HORIZON = atoi(optarg);
 			break;
 		case REACH_MODEL:
 			adaptParams.adaptationManager.REACH_MODEL = optarg;
@@ -247,6 +252,10 @@ int main(int argc, char** argv) {
 
 	if (optind < argc) {
 		usage();
+	}
+
+	if(adaptParams.longRangeSensor.OBSERVATION_HORIZON == 0){
+		adaptParams.longRangeSensor.OBSERVATION_HORIZON = adaptParams.adaptationManager.HORIZON;
 	}
 
 	if (autoRange) {
