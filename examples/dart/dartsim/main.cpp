@@ -44,8 +44,9 @@ enum ARGS {
 	TARGET_SENSOR_FNR,
 	DL_TARGET_SENSOR_RANGE,
 	AUTO_RANGE,
-	PLANNING_HORIZON,
+	DECISION_HORIZON,
 	OBSERVATION_HORIZON,
+	ACCUMULATE_OBSERVATIONS,
 	REACH_PATH,
 	REACH_MODEL,
 	DISTRIB_APPROX,
@@ -84,8 +85,9 @@ static struct option long_options[] = {
     {"target-sensor-fnr",  required_argument, 0,  TARGET_SENSOR_FNR },
 	{"dl-target-sensor-range", required_argument, 0,  DL_TARGET_SENSOR_RANGE },
 	{"auto-range", no_argument, 0,  AUTO_RANGE },
-    {"planning-horizon",  required_argument, 0,  PLANNING_HORIZON },
+    {"decision-horizon",  required_argument, 0,  DECISION_HORIZON },
 		{"observation-horizon", required_argument, 0, OBSERVATION_HORIZON},
+		{"accumulate-observations", no_argument, 0, ACCUMULATE_OBSERVATIONS},
     {"reach-path",  required_argument, 0,  REACH_PATH },
     {"reach-model",  required_argument, 0,  REACH_MODEL },
 	{"distrib-approx", required_argument, 0, DISTRIB_APPROX },
@@ -176,11 +178,14 @@ int main(int argc, char** argv) {
 		case AUTO_RANGE:
 			autoRange = true;
 			break;
-		case PLANNING_HORIZON:
+		case DECISION_HORIZON:
 			adaptParams.adaptationManager.HORIZON = atoi(optarg);
 			break;
 		case OBSERVATION_HORIZON:
 			adaptParams.longRangeSensor.OBSERVATION_HORIZON = atoi(optarg);
+			break;
+		case ACCUMULATE_OBSERVATIONS:
+			adaptParams.adaptationManager.accumulateObservations = true;
 			break;
 		case REACH_MODEL:
 			adaptParams.adaptationManager.REACH_MODEL = optarg;
@@ -254,8 +259,17 @@ int main(int argc, char** argv) {
 		usage();
 	}
 
+	// Handle the observation horizon cases
 	if(adaptParams.longRangeSensor.OBSERVATION_HORIZON == 0){
 		adaptParams.longRangeSensor.OBSERVATION_HORIZON = adaptParams.adaptationManager.HORIZON;
+	} else if(adaptParams.longRangeSensor.OBSERVATION_HORIZON < adaptParams.adaptationManager.HORIZON){
+		cout << "Observation horizon must be greater than or equal to the decision horizon." << endl;
+		return 0;
+	}
+
+	if(adaptParams.adaptationManager.accumulateObservations && simParams.scenario.SQUARE_MAP){
+		cout << "'--accumulate-observations' and '--square-map' are not compatible." << endl;
+		return 0;
 	}
 
 	if (autoRange) {

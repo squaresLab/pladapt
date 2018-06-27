@@ -9,8 +9,12 @@ Give the path to the prism template. Defaults to `../dartam/model/dart2`
 
 ## Agent Settings
 
-### `--lookahead-horizon=value`
-Set the planning horizon
+### `--decision-horizon=value`
+Set the decision horizon
+
+### `--observation-horizon=value`
+Set the horizon which the team samples the environment up to. This must be
+greater than or equal to the decision horizon.
 
 ### `--non-latency-aware`
 Makes the agent ignore the latency of it's adaptations. (It assumes all actions are instantaneous)
@@ -25,6 +29,12 @@ Give a utility for each step that the agent remains alive. Defaults to 0 as the 
 Choose the adaptation manager that you want to use. Currently supports:
 *   pmc
 *   sdp
+
+### `--accumulate-observations`
+Accumulates the team's sensor observations as it travels instead of discarding
+them at each step. This leads to more accurate representations of the
+environment for segments that are closer to the team. Currently this is only
+supported for straight routes and is not compatible with `--square-map`
 
 ### `--change-alt-latency=value`
 Adjusts the latency of changing altitude. Given in *seconds* where the planning period is 60 seconds. This defaults to 60 (a single period).

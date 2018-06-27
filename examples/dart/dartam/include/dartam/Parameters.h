@@ -37,7 +37,7 @@ struct LongRangeSensorParams {
 	double TARGET_SENSOR_FPR = 0.10;
 	double TARGET_SENSOR_FNR = 0.15;
 
-	int OBSERVATION_HORIZON = 0;
+	unsigned OBSERVATION_HORIZON = 0;
 	int THREAT_OBSERVATIONS_PER_CYCLE = 4;
 	int TARGET_OBSERVATIONS_PER_CYCLE = 4;
 };
@@ -76,6 +76,7 @@ struct AdaptationManagerParams {
 	double adaptationPeriod = 60;
 	unsigned HORIZON = 5;
 	bool nonLatencyAware = false;
+	bool accumulateObservations = false;
 	DartDTMCEnvironment::DistributionApproximation distributionApproximation = DartDTMCEnvironment::DistributionApproximation::E_PT;
 	std::string REACH_PATH = "../../../reach/reach.sh";
 	std::string REACH_MODEL = "../../../reach/model/dart2";
