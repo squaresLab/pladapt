@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -201,6 +201,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 
 	/* sim loop */
 	Coordinate position;
+  int timestep =  0;
 	auto routeIt = route.begin();
 	while (routeIt != route.end()) {
 		position = *routeIt;
@@ -299,9 +300,11 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 		if (pTargetSensor->sense(currentConfig, targetEnv.isObjectAt(position))) {
 			cout << "Target detected at " << position << endl;
 			targetsDetected++;
+      currentConfig.setTargetDetected(true);
 			screen[screenPosition][SCREEN_TARGETS] = 'X';
-		}
-
+		} else {
+      currentConfig.setTargetDetected(false);
+    }
 
 		/* system evolution */
 		// route position already advanced before
@@ -339,6 +342,9 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 				currentConfig.setAltitudeLevel(currentConfig.getAltitudeLevel() - 2);
 			}
 		}
+
+    currentConfig.setTimestep(timestep);
+    timestep ++;
 	}
 
 	if (!destroyed) {

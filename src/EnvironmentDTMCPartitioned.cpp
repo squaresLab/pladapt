@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -27,6 +27,15 @@ namespace pladapt {
 
 EnvironmentDTMCPartitioned::EnvironmentDTMCPartitioned(unsigned numberOfStates)
 	: DTMCPartitionedStates(numberOfStates), stateValues(numberOfStates) {
+}
+
+EnvironmentDTMCPartitioned::EnvironmentDTMCPartitioned(EnvironmentDTMCPartitioned& obj)
+	: DTMCPartitionedStates(obj.getNumberOfStates()) {
+	stateValues = std::vector<std::shared_ptr<Environment>>(obj.getNumberOfStates());
+
+	for(unsigned i = 0; i < stateValues.size(); i++){
+		stateValues[i] = obj.getSharedStateValue(i);
+	}
 }
 
 void EnvironmentDTMCPartitioned::setStateValue(unsigned state,

@@ -11,6 +11,7 @@ libdartam_la_SOURCES = DartAdaptationManager.cpp DartConfiguration.cpp \
 	DartPMCHelper.cpp DartSimpleEnvironment.cpp DartUtilityFunction.cpp \
 	DeterministicTargetSensor.cpp DeterministicThreat.cpp \
 	EnvironmentMonitor.cpp RandomSeed.cpp RealEnvironment.cpp Route.cpp \
-	Sensor.cpp TargetSensor.cpp Threat.cpp
+	Sensor.cpp TargetSensor.cpp Threat.cpp HybridAdaptationManager.cpp \
+	State.cpp PlanDB.cpp
 libdartam_la_LIBADD = $(ADAPTMGR_PATH)/build/src/libadaptmgr.a -lboost_system \
 	-lboost_filesystem -lboost_serialization -lyaml-cpp

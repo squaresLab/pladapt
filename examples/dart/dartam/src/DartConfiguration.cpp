@@ -30,7 +30,7 @@ DartConfiguration::DartConfiguration(unsigned altitudeLevel,
 		unsigned ttcIncAlt2, unsigned ttcDecAlt2, bool ecm)
 	: altitudeLevel(altitudeLevel), formation(formation), ttcIncAlt(ttcIncAlt), ttcDecAlt(ttcDecAlt),
 	  ttcIncAlt2(ttcIncAlt2), ttcDecAlt2(ttcDecAlt2),
-	  ecm(ecm)
+	  ecm(ecm), targetDetected(false)
 {
 }
 
@@ -75,6 +75,14 @@ unsigned DartConfiguration::getTtcIncAlt2() const {
 	return ttcIncAlt2;
 }
 
+unsigned DartConfiguration::getTimestep() const {
+	return timestep;
+}
+
+bool DartConfiguration::getTargetDetected() const {
+	return targetDetected;
+}
+
 void DartConfiguration::setAltitudeLevel(unsigned altitudeLevel) {
 	this->altitudeLevel = altitudeLevel;
 }
@@ -97,6 +105,14 @@ void DartConfiguration::setTtcDecAlt2(unsigned ttcDecAlt2) {
 
 void DartConfiguration::setTtcIncAlt2(unsigned ttcIncAlt2) {
 	this->ttcIncAlt2 = ttcIncAlt2;
+}
+
+void DartConfiguration::setTimestep(unsigned timestep){
+	this->timestep = timestep;
+}
+
+void DartConfiguration::setTargetDetected(bool targetDetected) {
+	this->targetDetected = targetDetected;
 }
 
 bool DartConfiguration::getEcm() const {

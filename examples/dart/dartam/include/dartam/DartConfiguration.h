@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -42,12 +42,16 @@ public:
 	unsigned getTtcIncAlt() const;
 	unsigned getTtcDecAlt2() const;
 	unsigned getTtcIncAlt2() const;
+	unsigned getTimestep() const;
+	bool getTargetDetected() const;
 	void setAltitudeLevel(unsigned altitudeLevel);
 	void setFormation(Formation formation);
 	void setTtcDecAlt(unsigned ttcDecAlt);
 	void setTtcIncAlt(unsigned ttcIncAlt);
 	void setTtcDecAlt2(unsigned ttcDecAlt2);
 	void setTtcIncAlt2(unsigned ttcIncAlt2);
+	void setTimestep(unsigned timestep);
+	void setTargetDetected(bool targetDetected);
 	bool getEcm() const;
 	void setEcm(bool ecm);
 
@@ -59,6 +63,8 @@ protected:
 	unsigned ttcIncAlt2;
 	unsigned ttcDecAlt2;
 	bool ecm; // electronic countermeasures
+	unsigned timestep;
+	bool targetDetected;
 
 	virtual bool equals(const Configuration& other) const;
 };

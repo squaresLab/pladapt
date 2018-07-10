@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -24,37 +24,59 @@
 
 #include <string>
 #include <vector>
+#include <set>
+#include <string.h>
 
 namespace pladapt {
 
 class PRISMWrapper {
 protected:
-    std::string modelTemplatePath;
-    std::vector<std::string> prismOptions;
+std::string modelTemplatePath;
+std::vector<std::string> prismOptions;
+int currentDir;
+std::string* storedPath;
+char* tempDir;
+std::string modelDirectory;
+bool modelOpen;
 
-    bool generateModel(std::string environmentModel, std::string initialState, const char* modelPath);
-    bool runPrism(const char* modelPath, const char* adversaryPath, const char* statesPath,
-    		const char* labelsPath, const char* pctl);
 
 public:
-	PRISMWrapper();
+PRISMWrapper();
 
-	/**
-	 * Returns a vector of tactics that must be started now
-	 * TODO the args should be a probability tree and a key-value map for the state
-	 *
-	 * @param path if not null, the temp directory path (relative) is stored there, and the
-	 *   directory is not deleted
-	 * @throws std::domain_error if there is no solution
-	 */
-	std::vector<std::string> plan(const std::string& environmentModel, const std::string& initialState,
-			const std::string& pctl, std::string* path = 0);
+const char* modelPath = "ttimemodel.prism";
+const char* adversaryPath = "result.adv";
+const char* statesPath = "result.sta";
+const char* labelsPath = "result.lab";
+/**
+ * Returns a vector of tactics that must be started now
+ * TODO the args should be a probability tree and a key-value map for the state
+ *
+ * @param path if not null, the temp directory path (relative) is stored there, and the
+ *   directory is not deleted
+ * @throws std::domain_error if there is no solution
+ */
+std::vector<std::string> plan(const std::string& environmentModel, const std::string& initialState,
+                              const std::string& pctl, std::string* path = 0);
 
-	void setModelTemplatePath(const std::string& modelTemplatePath);
-	void setPrismOptions(const std::vector<std::string>& options);
+void generatePersistentPlan(const std::string& environmentModel, const std::string& initialState,
+                              const std::string& pctl, std::string* path = 0);
 
-	virtual ~PRISMWrapper();
-	void test();
+void setModelTemplatePath(const std::string& modelTemplatePath);
+void setPrismOptions(const std::vector<std::string>& options);
+
+void closeModel();
+bool isModelOpen();
+std::string getModelDirectory();
+virtual ~PRISMWrapper();
+
+protected:
+bool generateModel(std::string environmentModel, std::string initialState, const char* modelPath);
+bool runPrism(const char* pctl);
+std::vector<std::string> getActions(std::set<int>& states);
+std::set<int> getNowStates();
+
+
+void test();
 };
 
 }
