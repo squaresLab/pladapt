@@ -27,10 +27,10 @@ namespace am2 {
 
 DartConfiguration::DartConfiguration(unsigned altitudeLevel,
 		Formation formation, unsigned ttcIncAlt, unsigned ttcDecAlt,
-		unsigned ttcIncAlt2, unsigned ttcDecAlt2, bool ecm)
+		unsigned ttcIncAlt2, unsigned ttcDecAlt2, unsigned timestep, bool ecm)
 	: altitudeLevel(altitudeLevel), formation(formation), ttcIncAlt(ttcIncAlt), ttcDecAlt(ttcDecAlt),
 	  ttcIncAlt2(ttcIncAlt2), ttcDecAlt2(ttcDecAlt2),
-	  ecm(ecm), targetDetected(false)
+	  ecm(ecm), timestep(timestep), targetDetected(false)
 {
 }
 

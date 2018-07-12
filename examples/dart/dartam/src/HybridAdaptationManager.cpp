@@ -46,18 +46,29 @@ void HybridAdaptationManager::initialize(std::shared_ptr<const pladapt::Configur
 pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configuration& currentConfigObj, const pladapt::EnvironmentDTMCPartitioned& envDTMC,
                                                       const pladapt::UtilityFunction& utilityFunction, unsigned horizon) {
 
-	// QUESTION: Is it possible for the model to be open at this point but not
+
+	// QUESTION: Is it possible for the model to be open at this point but not #drew
 	//  be loaded into the PlanDB? If so it needs to be accounted for here
-  State currentState;
-	// Check PRISM for a plan existance
-	if(deliberativeWrapper.isModelOpen()) {
 
-		// Check PlanDB for a the existance of the current state
-		//PlanDB::get_instance()->populate_state_obj(&dynamic_cast<const DartConfiguration&>(currentConfigObj), &savedDTMC, &envDTMC, currentState);
-	}
+  // TODO: Copy the configuration and alter the timestep to match the PRISM plan
+  unsigned adjustedTimestep = (dynamic_cast<const DartConfiguration&>(currentConfigObj)).getTimestep() - planStartTime;
+  DartConfiguration adjustedConfig = DartConfiguration(dynamic_cast<const DartConfiguration&>(currentConfigObj));
+  adjustedConfig.setTimestep(adjustedTimestep);
 
-	// If there is no plan created or loaded -> Replan
-	//if(currentState.env_state == UINT_MAX) {
+	// Check PlanDB for a the existance of the current state
+	State currentState;
+	PlanDB::get_instance()->populate_state_obj(&adjustedConfig, &savedDTMC, &envDTMC, currentState);
+
+
+	// If there is no applicable plan exists generate a new one
+	if((currentState.env_state == UINT_MAX) || (adjustedTimestep >= horizon)) {
+
+		planStartTime = (dynamic_cast<const DartConfiguration&>(currentConfigObj)).getTimestep();
+
+		// TODO: Move this back to end of function #drew
+		//deliberativeWrapper.closeModel();
+		PlanDB::get_instance()->clean_db();
+
 		/* check if we need to adjust the horizon to the environment size */
 		if ((envDTMC.getNumberOfParts() - 1) < horizon) {
 			if (envDTMC.getNumberOfParts() > 1 && envDTMC.isLastPartFinal()) {
@@ -66,8 +77,8 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 			}
 		}
 
+		// Generate PRISM initialization strings
 		string initialState = pMcHelper->generateInitializations(currentConfigObj, utilityFunction, horizon);
-
 		string environmentModel = generateEnvironmentDTMC(envDTMC);
 
 		string templatePath = params[TEMPLATE_PATH].as<string>();
@@ -76,13 +87,8 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 		}
 
 		templatePath += ".prism";
-
-		deliberativeWrapper.setModelTemplatePath(templatePath);
-
 		string* pPath = 0;
-		if (debug) {
-			pPath = new string;
-		}
+		deliberativeWrapper.setModelTemplatePath(templatePath);
 
 		// Generates the prism model and adversary transition model
 		deliberativeWrapper.generatePersistentPlan(environmentModel, initialState, PCTL, pPath);
@@ -90,37 +96,26 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 		// Load the plan into PlanDB
 		PlanDB::get_instance()->populate_db(deliberativeWrapper.getModelDirectory().c_str());
 
-    // Clean up PRISM output
-    deliberativeWrapper.closeModel();
+		// Clean up PRISM output
+		// TODO: add this back #drew
+		deliberativeWrapper.closeModel();
 
-	//}
+		savedDTMC = envDTMC;
 
+		//TODO: Use Reactive plan here and return the actions #drew
 
-	// Use the plan
-	PlanDB::Plan p;
-	PlanDB::get_instance()->get_plan(&dynamic_cast<const DartConfiguration&>(currentConfigObj),&savedDTMC,&envDTMC, p);
+		return set<string>();
+	} else { // If there is an applicable plan, use it
 
-	// Convert the vector of strings into a set of strings to remain compatable
-	//  with Gabe's existing code
-	pladapt::TacticList result(p.begin(),p.end());
+		// Use the plan
+		PlanDB::Plan p;
+		PlanDB::get_instance()->get_plan(&adjustedConfig, &savedDTMC, &envDTMC, p);
 
-	//TODO: Use Reactive plan here
-	// remove sufixes from tactic names (everything after after (and including) an underscore)
-	// for (auto& tactic : tactics) {
-	//      auto pos = tactic.find('_');
-	//      if (pos != string::npos) {
-	//              tactic.erase(pos);
-	//      }
-	//      result.insert(tactic);
-	// }
-
-	// Debugging code
-	// if (pPath) {
-	// 	cout << "*debug path " << *pPath << endl;
-	// 	delete pPath;
-	// }
-
-	return result;
+		// Convert the vector of strings into a set of strings to remain compatable
+		//  with Gabe's existing code
+		pladapt::TacticList result(p.begin(),p.end());
+		return result;
+	}
 }
 
 
@@ -130,9 +125,6 @@ const string GUARD = "[tick] ";
 
 std::string HybridAdaptationManager::generateEnvironmentDTMC(const pladapt::EnvironmentDTMCPartitioned& envDTMC) {
 	const string STATE_VALUE_FORMULA = "formula stateValue";
-
-	// TODO: Check if this needs a deeper copy bc of the shared ptr
-  savedDTMC = EnvironmentDTMCPartitioned(envDTMC);
 
 	string result;
 

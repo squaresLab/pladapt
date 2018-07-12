@@ -343,6 +343,12 @@ std::vector<std::string> PRISMWrapper::plan(const std::string& environmentModel,
 		storedPath = path;
 	}
 
+	// Save the path to the model directory
+	char* buff = new char[400];
+	buff = getcwd(buff,400);
+	modelDirectory = string(buff);
+	delete [] buff;
+
 	// generate model
 	/*
 	 * perhaps this could take a probability tree as an argument, and then generate the
@@ -412,7 +418,7 @@ void PRISMWrapper::generatePersistentPlan(const std::string& environmentModel, c
 
 	// Save the path to the model directory
 	char* buff = new char[400];
-	getcwd(buff,400);
+	buff = getcwd(buff,400);
 	modelDirectory = string(buff);
 	delete [] buff;
 
@@ -449,7 +455,7 @@ void PRISMWrapper::closeModel(){
 	close(currentDir);
 
 	if (!storedPath) {
-		rmdir(tempDir);
+		rmdir(modelDirectory.c_str());
 	}
 
 	modelOpen = false;

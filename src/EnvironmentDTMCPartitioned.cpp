@@ -29,15 +29,6 @@ EnvironmentDTMCPartitioned::EnvironmentDTMCPartitioned(unsigned numberOfStates)
 	: DTMCPartitionedStates(numberOfStates), stateValues(numberOfStates) {
 }
 
-EnvironmentDTMCPartitioned::EnvironmentDTMCPartitioned(EnvironmentDTMCPartitioned& obj)
-	: DTMCPartitionedStates(obj.getNumberOfStates()) {
-	stateValues = std::vector<std::shared_ptr<Environment>>(obj.getNumberOfStates());
-
-	for(unsigned i = 0; i < stateValues.size(); i++){
-		stateValues[i] = obj.getSharedStateValue(i);
-	}
-}
-
 void EnvironmentDTMCPartitioned::setStateValue(unsigned state,
         std::shared_ptr<Environment> pValue) {
 	stateValues[state] = std::move(pValue);

@@ -66,6 +66,8 @@ struct DartMonitoringInfo {
 	bool ecm; /**< if ECM is on */
 	double ttcFormationChange;  /**< time to complete altitude change, 0 means no ongoing change */
 
+	unsigned timestep;
+
 	/**
 	 * Results of threat sensing
 	 *

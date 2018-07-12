@@ -38,7 +38,6 @@ protected:
 
 public:
 	EnvironmentDTMCPartitioned(unsigned numberOfStates);
-	EnvironmentDTMCPartitioned(EnvironmentDTMCPartitioned& obj);
 
 	void setStateValue(unsigned state, std::shared_ptr<Environment> pValue);
 	const Environment& getStateValue(unsigned state) const;

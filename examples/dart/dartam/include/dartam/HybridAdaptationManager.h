@@ -66,6 +66,7 @@ std::shared_ptr<const pladapt::PMCHelper> pMcHelper;
 pladapt::EnvironmentDTMCPartitioned savedDTMC;
 pladapt::PRISMWrapper deliberativeWrapper;
 PlanDB plan;
+unsigned planStartTime;
 
 YAML::Node params;
 };

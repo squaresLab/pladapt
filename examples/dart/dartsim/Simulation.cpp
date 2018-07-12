@@ -192,7 +192,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 	Stats decisionTimeStats;
 
 	/* initialize platform */
-	DartConfiguration currentConfig(params.configurationSpace.ALTITUDE_LEVELS - 1, DartConfiguration::Formation::LOOSE, 0, 0, 0, 0);
+	DartConfiguration currentConfig(params.configurationSpace.ALTITUDE_LEVELS - 1, DartConfiguration::Formation::LOOSE, 0, 0, 0, 0, 0);
 
 	unsigned targetsDetected = 0;
 	bool destroyed = false;
@@ -234,6 +234,8 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 		monitoringInfo.ttcIncAlt2 = currentConfig.getTtcIncAlt2() * params.adaptationManager.adaptationPeriod;
 		monitoringInfo.ttcDecAlt2 = currentConfig.getTtcDecAlt2() * params.adaptationManager.adaptationPeriod;
 		monitoringInfo.ecm = currentConfig.getEcm();
+
+    monitoringInfo.timestep = timestep;
 
 		/* monitor environment */
 		Route senseRoute(position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);

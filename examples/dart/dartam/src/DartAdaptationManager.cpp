@@ -169,8 +169,8 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
 
 	/* build env model with information collected so far */
 	Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
-	DartDTMCEnvironment threatDTMC(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
-	DartDTMCEnvironment targetDTMC(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment threatDTMC = DartDTMCEnvironment(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment targetDTMC = DartDTMCEnvironment(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
 	pladapt::EnvironmentDTMCPartitioned jointEnv = pladapt::EnvironmentDTMCPartitioned::createJointDTMC(threatDTMC, targetDTMC);
 
 	/* make adaptation decision */
@@ -191,7 +191,7 @@ DartConfiguration DartAdaptationManager::convertToDiscreteConfiguration(const Da
 
 	// TODO formation change assumed instantaneous for now
 
-	return DartConfiguration(altitudeLevel, formation, ttcIncAlt, ttcDecAlt, ttcIncAlt2, ttcDecAlt2, info.ecm);
+	return DartConfiguration(altitudeLevel, formation, ttcIncAlt, ttcDecAlt, ttcIncAlt2, ttcDecAlt2, info.timestep ,info.ecm);
 }
 
 void DartAdaptationManager::printEnvironment() {

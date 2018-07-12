@@ -29,7 +29,7 @@ namespace dart {
       state_str += to_string(decAlt_state) + ",";
       state_str += get_bool_str(decAlt_go) + ",";
       state_str += get_bool_str(satisfied) + ",";
-      state_str += get_bool_str(targetDetected) + ",";
+      state_str += get_bool_str(targetDetected);
 
       state_str += ")";
 

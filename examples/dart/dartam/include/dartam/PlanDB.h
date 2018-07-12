@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <queue>
+#include <utility>
 #include <dartam/State.h>
 #include <dartam/DartConfiguration.h>
 #include <pladapt/EnvironmentDTMCPartitioned.h>
@@ -27,12 +29,12 @@ typedef std::map<unsigned long, Transition> AdversaryMap;
 typedef std::map<size_t, unsigned long> StateHashMap;
 
 static PlanDB* get_instance() {
-        if (m_db_object == NULL) {
-            m_db_object = new PlanDB();
-        }
+	if (m_db_object == NULL) {
+		m_db_object = new PlanDB();
+	}
 
-        return m_db_object;
-    }
+	return m_db_object;
+}
 
 bool populate_db(const char* dir);
 void destroy_db();
@@ -44,9 +46,9 @@ Plan get_actions(State& state);
 ~PlanDB();
 PlanDB();
 bool populate_state_obj(const DartConfiguration* config,
-	const pladapt::EnvironmentDTMCPartitioned* oldPredictions,
-	const pladapt::EnvironmentDTMCPartitioned* newPredictions,
-	State& state);
+                        const pladapt::EnvironmentDTMCPartitioned* oldPredictions,
+                        const pladapt::EnvironmentDTMCPartitioned* newPredictions,
+                        State& state);
 
 private:
 
@@ -65,6 +67,14 @@ StateHashMap m_state_hash_map;
 
 const char* m_states_file;
 const char* m_adversary_file;
+};
+
+struct less_than_key
+{
+	inline bool operator() (const std::pair<double,int>& pair1, const std::pair<double,int>& pair2)
+	{
+		return (pair1.first < pair2.first);
+	}
 };
 
 } /* dart */
