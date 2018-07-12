@@ -14,9 +14,11 @@ namespace pladapt {
 	TacticList SASSAdaptationManager::evaluate(const Configuration& currentConfigObj, const EnvironmentDTMCPartitioned& envDTMC,
         const UtilityFunction& utilityFunction, unsigned horizon){
 
-		std::string exec = "echo test"; 
+		std::string exec = "/home/ckinneer/research/pladapt/examples/dart/darteval/runSASS.sh";
 
-		bp::system("echo test", bp::std_out > stdout, bp::std_err >
+		//std::string exec = "echo \"test\""; 
+
+		bp::system(exec, bp::std_out > stdout, bp::std_err >
 stderr, bp::std_in < stdin);
 
 		set<string> str { "GoTight" };
