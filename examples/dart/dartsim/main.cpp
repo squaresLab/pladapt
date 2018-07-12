@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -44,7 +44,9 @@ enum ARGS {
 	TARGET_SENSOR_FNR,
 	DL_TARGET_SENSOR_RANGE,
 	AUTO_RANGE,
-	LOOKAHEAD_HORIZON,
+	DECISION_HORIZON,
+	OBSERVATION_HORIZON,
+	ACCUMULATE_OBSERVATIONS,
 	REACH_PATH,
 	REACH_MODEL,
 	DISTRIB_APPROX,
@@ -83,7 +85,9 @@ static struct option long_options[] = {
     {"target-sensor-fnr",  required_argument, 0,  TARGET_SENSOR_FNR },
 	{"dl-target-sensor-range", required_argument, 0,  DL_TARGET_SENSOR_RANGE },
 	{"auto-range", no_argument, 0,  AUTO_RANGE },
-    {"lookahead-horizon",  required_argument, 0,  LOOKAHEAD_HORIZON },
+    {"decision-horizon",  required_argument, 0,  DECISION_HORIZON },
+		{"observation-horizon", required_argument, 0, OBSERVATION_HORIZON},
+		{"accumulate-observations", no_argument, 0, ACCUMULATE_OBSERVATIONS},
     {"reach-path",  required_argument, 0,  REACH_PATH },
     {"reach-model",  required_argument, 0,  REACH_MODEL },
 	{"distrib-approx", required_argument, 0, DISTRIB_APPROX },
@@ -174,8 +178,14 @@ int main(int argc, char** argv) {
 		case AUTO_RANGE:
 			autoRange = true;
 			break;
-		case LOOKAHEAD_HORIZON:
+		case DECISION_HORIZON:
 			adaptParams.adaptationManager.HORIZON = atoi(optarg);
+			break;
+		case OBSERVATION_HORIZON:
+			adaptParams.longRangeSensor.OBSERVATION_HORIZON = atoi(optarg);
+			break;
+		case ACCUMULATE_OBSERVATIONS:
+			adaptParams.adaptationManager.accumulateObservations = true;
 			break;
 		case REACH_MODEL:
 			adaptParams.adaptationManager.REACH_MODEL = optarg;
@@ -247,6 +257,19 @@ int main(int argc, char** argv) {
 
 	if (optind < argc) {
 		usage();
+	}
+
+	// Handle the observation horizon cases
+	if(adaptParams.longRangeSensor.OBSERVATION_HORIZON == 0){
+		adaptParams.longRangeSensor.OBSERVATION_HORIZON = adaptParams.adaptationManager.HORIZON;
+	} else if(adaptParams.longRangeSensor.OBSERVATION_HORIZON < adaptParams.adaptationManager.HORIZON){
+		cout << "Observation horizon must be greater than or equal to the decision horizon." << endl;
+		return 0;
+	}
+
+	if(adaptParams.adaptationManager.accumulateObservations && simParams.scenario.SQUARE_MAP){
+		cout << "'--accumulate-observations' and '--square-map' are not compatible." << endl;
+		return 0;
 	}
 
 	if (autoRange) {

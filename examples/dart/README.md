@@ -9,8 +9,12 @@ Give the path to the prism template. Defaults to `../dartam/model/dart2`
 
 ## Adaptation Manager Settings
 
-### `--lookahead-horizon=value`
+### `--decision-horizon=value`
 Set the decision horizon
+
+### `--observation-horizon=value`
+Set the horizon which the team samples the environment up to. This must be
+greater than or equal to the decision horizon.
 
 ### `--non-latency-aware`
 Makes the adaptation manager ignore the latency of its adaptations.
@@ -27,6 +31,12 @@ Give a utility for each step that the drones remain alive.
 Choose the adaptation manager that you want to use. Currently supports:
 *   pmc
 *   sdp
+
+### `--accumulate-observations`
+Accumulates the team's sensor observations as it travels instead of discarding
+them at each step. This leads to more accurate representations of the
+environment for segments that are closer to the team. Currently this is only
+supported for straight routes and is not compatible with `--square-map`
 
 ### `--change-alt-latency=value`
 Adjusts the latency of changing altitude. Given in *seconds* where the decision

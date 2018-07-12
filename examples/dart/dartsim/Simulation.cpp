@@ -239,9 +239,13 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 
 		/* monitor environment */
 		Route senseRoute(position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
-		envThreatMonitor.clear();
-		envThreatMonitor.sense(threatEnv, params.longRangeSensor.THREAT_OBSERVATIONS_PER_CYCLE, senseRoute);
-		envTargetMonitor.clear();
+
+    if(!params.adaptationManager.accumulateObservations){
+      envThreatMonitor.clear();
+      envTargetMonitor.clear();
+    }
+
+    envThreatMonitor.sense(threatEnv, params.longRangeSensor.THREAT_OBSERVATIONS_PER_CYCLE, senseRoute);
 		envTargetMonitor.sense(targetEnv, params.longRangeSensor.TARGET_OBSERVATIONS_PER_CYCLE, senseRoute);
 		monitoringInfo.threatSensing = envThreatMonitor.getResults(senseRoute);
     //		cout << "sensed threats:";
