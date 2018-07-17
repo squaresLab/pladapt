@@ -20,6 +20,11 @@ namespace dart {
       state_str += to_string(env_state) + ",";
       state_str += to_string(altitude) + ",";
       state_str += to_string(formation) + ",";
+      state_str += to_string(ecm) + ",";
+      state_str += get_bool_str(ecmOn_used) + ",";
+      state_str += get_bool_str(ecmOn_go) + ",";
+      state_str += get_bool_str(ecmOff_used) + ",";
+      state_str += get_bool_str(ecmOff_go) + ",";
       state_str += get_bool_str(goTight_used) + ",";
       state_str += get_bool_str(goTight_go) + ",";
       state_str += get_bool_str(goLoose_used) + ",";

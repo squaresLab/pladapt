@@ -5,6 +5,10 @@ mdp
 //const int MAX_ALT_LEVEL
 //const int init_a
 //const int init_f
+//const int init_c
+// TODO: Add inits that will prevent the disabled tactics from being considered
+// in PRISM
+//const bool ECM_ENABLED
 //const double IncAlt_LATENCY
 //const double DecAlt_LATENCY
 //const int ini_IncAlt_state
@@ -13,6 +17,7 @@ mdp
 //const double threatRange
 //const double detectionFormationFactor
 //const double sensorRange
+
 
 //#init
 
@@ -45,11 +50,15 @@ module env
 // Variable range and initialization
 const a_MIN=0; const a_MAX=MAX_ALT_LEVEL; const a_INIT=init_a;
 const f_MIN=0; const f_MAX=1; const f_INIT=init_f;
+const c_MIN=0; const c_MAX=1; const c_INIT=init_c;
 
 module sys
 	a : [a_MIN..a_MAX] init a_INIT;
 	f : [f_MIN..f_MAX] init f_INIT;
+  c : [c_MIN..c_MAX] init c_INIT;
 
+  [EcmOn_start] c=0 & ECM_ENABLED -> 1: (c'=c_EcmOn_impact);
+  [EcmOff_start] c=1 & ECM_ENABLED -> 1: (c'=c_EcmOff_impact);
 	[GoTight_start] f=0 -> 1: (a'=a_GoTight_impact)
 		 &  (f'=f_GoTight_impact);
 	[GoLoose_start] f=1 -> 1: (a'=a_GoLoose_impact)
@@ -61,6 +70,8 @@ module sys
 endmodule
 
 
+formula c_EcmOn_impact = c + (1) >= c_MIN ? ( c+(1)<=c_MAX?  c+(1) : c_MAX) : c_MIN;
+formula c_EcmOff_impact = c + (-1) >= c_MIN ? ( c+(-1)<=c_MAX?  c+(-1) : c_MAX) : c_MIN;
 formula a_GoTight_impact = a + (0) >= a_MIN ? ( a+(0)<=a_MAX?  a+(0) : a_MAX) : a_MIN;
 formula f_GoTight_impact = f + (1) >= f_MIN ? ( f+(1)<=f_MAX?  f+(1) : f_MAX) : f_MIN;
 formula a_GoLoose_impact = a + (0) >= a_MIN ? ( a+(0)<=a_MAX?  a+(0) : a_MAX) : a_MIN;
@@ -75,10 +86,61 @@ formula f_DecAlt_impact = f + (0) >= f_MIN ? ( f+(0)<=f_MAX?  f+(0) : f_MAX) : f
 formula IncAlt_used = IncAlt_state != 0;
 formula DecAlt_used = DecAlt_state != 0;
 
+formula EcmOn_compatible = !EcmOn_used;
+formula EcmOff_compatible = !EcmOff_used;
 formula GoTight_compatible = !GoLoose_used;
 formula GoLoose_compatible = !GoTight_used;
 formula IncAlt_compatible = !DecAlt_used;
 formula DecAlt_compatible = !IncAlt_used;
+
+
+//************************************************************************
+// TACTIC: EcmOn
+//************************************************************************
+
+// Applicability conditions
+formula EcmOn_applicable = EcmOn_compatible & c=0;
+
+module EcmOn
+    EcmOn_used : bool init false;
+    EcmOn_go : bool init true;
+
+    // Tactic applicable, start it
+    [EcmOn_start] sys_go & EcmOn_go & EcmOn_applicable & ECM_ENABLED -> (EcmOn_used'=true) & (EcmOn_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & EcmOn_go & EcmOn_applicable -> (EcmOn_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & EcmOn_go & !EcmOn_applicable -> 1 : (EcmOn_go'=false);
+
+    [tick] !EcmOn_go -> 1: (EcmOn_go'=true) & (EcmOn_used'=false);
+endmodule
+
+
+//************************************************************************
+// TACTIC: EcmOff
+//************************************************************************
+
+// Applicability conditions
+formula EcmOff_applicable = EcmOff_compatible & f=1;
+
+module EcmOff
+    EcmOff_used : bool init false;
+    EcmOff_go : bool init true;
+
+    // Tactic applicable, start it
+    [EcmOff_start] sys_go & EcmOff_go & EcmOff_applicable & ECM_ENABLED -> (EcmOff_used'=true) & (EcmOff_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & EcmOff_go & EcmOff_applicable -> (EcmOff_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & EcmOff_go & !EcmOff_applicable -> 1 : (EcmOff_go'=false);
+
+    [tick] !EcmOff_go -> 1: (EcmOff_go'=true) & (EcmOff_used'=false);
+endmodule
+
 
 //************************************************************************
 // TACTIC: GoTight
@@ -196,11 +258,13 @@ endmodule
 //*******************************
 const int LOOSE = 0;
 const int TIGHT = 1;
+const int EMC_ON = 1;
 
 formula probOfThreat = stateValue;
 
 formula probabilityOfDestruction = probOfThreat
 	* ((f = LOOSE) ? 1.0 : (1.0 / destructionFormationFactor))
+  * ((c = EMC_ON) ? 0.25 : 1.0)
 		* max(0.0, threatRange - (a + 1)) / threatRange; // +1 because level 0 is one level above ground
 
 module constraint // in this case the constraint is surviving
@@ -215,7 +279,8 @@ formula probOfTarget= stateValue1;
 
 formula probOfDetection = probOfTarget
 	* ((f = LOOSE) ? 1.0 : (1.0 / detectionFormationFactor))
-		* max(0.0, sensorRange - (a + 1)) / sensorRange; // +1 because level 0 is one level above ground
+  * ((c = EMC_ON) ? 0.25 : 1.0)
+	* max(0.0, sensorRange - (a + 1)) / sensorRange; // +1 because level 0 is one level above ground
 
 module sensor
 	targetDetected: bool init false;

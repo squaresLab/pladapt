@@ -18,7 +18,9 @@ enum TacticEnum {
 	INC_ALT,
 	DEC_ALT,
 	GO_LOOSE,
-	GO_TIGHT
+	GO_TIGHT,
+	ECM_ON,
+	ECM_OFF
 };
 
 class PlanDB {

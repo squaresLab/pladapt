@@ -185,6 +185,10 @@ TacticEnum PlanDB::get_tactic_code(string tactic_name) {
 		tactic = GO_LOOSE;
 	} else if (tactic_name.compare("GoTight_start") == 0) {
 		tactic = GO_TIGHT;
+	} else if (tactic_name.compare("EcmOn_start") == 0) {
+		tactic = ECM_ON;
+	}  else if (tactic_name.compare("EcmOff_start") == 0) {
+		tactic = ECM_OFF;
 	}
 
 	return tactic;
@@ -208,6 +212,12 @@ string PlanDB::get_tactic_str(TacticEnum tactic) {
 		break;
 	case GO_TIGHT:
 		tactic_str = "GoTight_start";
+		break;
+	case ECM_ON:
+		tactic_str = "EcmOn";
+		break;
+	case ECM_OFF:
+		tactic_str = "EcmOff";
 		break;
 	default:
 		break;
@@ -259,14 +269,19 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 	state.timestep = config->getTimestep();
 	state.altitude = config->getAltitudeLevel();
 	state.formation = config->getFormation() == DartConfiguration::LOOSE ? 0 : 1;
+	state.ecm = config->getEcm() ? 1 : 0;
 	state.incAlt_state = config->getTtcIncAlt();
 	state.decAlt_state = config->getTtcDecAlt();
 	state.targetDetected = config->getTargetDetected();
 
 	// These are always the same in the states we start from
 	// They are used to syncronize and handle tactics across the various tick and tack actions
+	state.ecmOn_go = true;
+	state.ecmOff_go = true;
 	state.goTight_go = true;
 	state.goLoose_go = true;
+	state.ecmOn_used = false;
+	state.ecmOff_used = false;
 	state.goTight_used = false;
 	state.goLoose_used = false;
 	state.incAlt_go = true;
