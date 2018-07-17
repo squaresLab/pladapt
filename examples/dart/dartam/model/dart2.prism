@@ -49,7 +49,7 @@ const f_MIN=0; const f_MAX=1; const f_INIT=init_f;
 module sys
 	a : [a_MIN..a_MAX] init a_INIT;
 	f : [f_MIN..f_MAX] init f_INIT;
-	
+
 	[GoTight_start] f=0 -> 1: (a'=a_GoTight_impact)
 		 &  (f'=f_GoTight_impact);
 	[GoLoose_start] f=1 -> 1: (a'=a_GoLoose_impact)
@@ -224,7 +224,7 @@ endmodule
 
 rewards "util"
 	[tack] satisfied & targetDetected : 1;
-	
+
 	// give slight preference to not adapting
 	[tick] time = 0 &  IncAlt_state=ini_IncAlt_state & DecAlt_state=ini_DecAlt_state & a=init_a & f=init_f : 0.000000001;
 endrewards

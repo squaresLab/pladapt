@@ -229,12 +229,11 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 	double currentThreatProb = newPredictions->getStateValue(0).getComponent(1).asDouble();
 
 
-	// TODO: Fix this so the enviroments can accurately pull the numbers #drew
 	// Loop through the states and find the closest match
 	// Find the first state where both target and thread are within the bound
 	double targetProb;
 	double threatProb;
-	double tolerance = 0.1f;
+	double tolerance = 0.25f;
 
 	// Define priority queue to keep track of env matches
 	vector<pair<double, int>> matchingEnvStates;

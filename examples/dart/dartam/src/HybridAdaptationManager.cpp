@@ -50,7 +50,6 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 	// QUESTION: Is it possible for the model to be open at this point but not #drew
 	//  be loaded into the PlanDB? If so it needs to be accounted for here
 
-  // TODO: Copy the configuration and alter the timestep to match the PRISM plan
   unsigned adjustedTimestep = (dynamic_cast<const DartConfiguration&>(currentConfigObj)).getTimestep() - planStartTime;
   DartConfiguration adjustedConfig = DartConfiguration(dynamic_cast<const DartConfiguration&>(currentConfigObj));
   adjustedConfig.setTimestep(adjustedTimestep);
@@ -65,8 +64,6 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 
 		planStartTime = (dynamic_cast<const DartConfiguration&>(currentConfigObj)).getTimestep();
 
-		// TODO: Move this back to end of function #drew
-		//deliberativeWrapper.closeModel();
 		PlanDB::get_instance()->clean_db();
 
 		/* check if we need to adjust the horizon to the environment size */
@@ -97,7 +94,6 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 		PlanDB::get_instance()->populate_db(deliberativeWrapper.getModelDirectory().c_str());
 
 		// Clean up PRISM output
-		// TODO: add this back #drew
 		deliberativeWrapper.closeModel();
 
 		savedDTMC = envDTMC;
