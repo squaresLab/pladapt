@@ -6,9 +6,8 @@ mdp
 //const int init_a
 //const int init_f
 //const int init_c
-// TODO: Add inits that will prevent the disabled tactics from being considered
-// in PRISM
 //const bool ECM_ENABLED
+//const bool TWO_LEVEL_ENABLED
 //const double IncAlt_LATENCY
 //const double DecAlt_LATENCY
 //const int ini_IncAlt_state
@@ -65,8 +64,10 @@ module sys
 		 &  (f'=f_GoLoose_impact);
 	[IncAlt_complete] a < MAX_ALT_LEVEL -> 1:  (a'=a_IncAlt_impact)
 	 	&  (f'=f_IncAlt_impact);
+  [IncAlt2_complete] a < MAX_ALT_LEVEL-1 & TWO_LEVEL_ENABLED -> 1:  (a'=a_IncAlt2_impact);
 	[DecAlt_complete] a > 0 -> 1:  (a'=a_DecAlt_impact)
 		 &  (f'=f_DecAlt_impact);
+  [DecAlt2_complete] a > 1 & TWO_LEVEL_ENABLED -> 1:  (a'=a_DecAlt2_impact);
 endmodule
 
 
@@ -80,18 +81,23 @@ formula a_IncAlt_impact = a + (1) >= a_MIN ? ( a+(1)<=a_MAX?  a+(1) : a_MAX) : a
 formula f_IncAlt_impact = f + (0) >= f_MIN ? ( f+(0)<=f_MAX?  f+(0) : f_MAX) : f_MIN;
 formula a_DecAlt_impact = a + (-1) >= a_MIN ? ( a+(-1)<=a_MAX?  a+(-1) : a_MAX) : a_MIN;
 formula f_DecAlt_impact = f + (0) >= f_MIN ? ( f+(0)<=f_MAX?  f+(0) : f_MAX) : f_MIN;
-
+formula a_IncAlt2_impact = a + (2) >= a_MIN ? ( a+(2)<=a_MAX?  a+(2) : a_MAX) : a_MIN;
+formula a_DecAlt2_impact = a + (-2) >= a_MIN ? ( a+(-2)<=a_MAX?  a+(-2) : a_MAX) : a_MIN;
 
 // tactic concurrency rules
 formula IncAlt_used = IncAlt_state != 0;
 formula DecAlt_used = DecAlt_state != 0;
+formula IncAlt2_used = IncAlt2_state != 0;
+formula DecAlt2_used = DecAlt2_state != 0;
 
 formula EcmOn_compatible = !EcmOn_used;
 formula EcmOff_compatible = !EcmOff_used;
 formula GoTight_compatible = !GoLoose_used;
 formula GoLoose_compatible = !GoTight_used;
-formula IncAlt_compatible = !DecAlt_used;
-formula DecAlt_compatible = !IncAlt_used;
+formula IncAlt_compatible = (!DecAlt_used) & (!IncAlt2_used) & (!DecAlt2_used);
+formula DecAlt_compatible = (!IncAlt_used) & (!IncAlt2_used) & (!DecAlt2_used);
+formula IncAlt2_compatible = (!DecAlt_used) & (!IncAlt_used) & (!DecAlt2_used);
+formula DecAlt2_compatible = (!DecAlt_used) & (!IncAlt_used) & (!IncAlt2_used);
 
 
 //************************************************************************
@@ -252,6 +258,68 @@ module DecAlt
 
     [tick] !DecAlt_go -> 1: (DecAlt_go'=true);
 endmodule
+
+//************************************************************************
+// TACTIC: IncAlt2
+//************************************************************************
+
+// Applicability conditions
+formula IncAlt2_applicable = IncAlt2_compatible & a < MAX_ALT_LEVEL-1;
+
+module IncAlt2
+    IncAlt2_state : [0..IncAlt_LATENCY_PERIODS] init ini_IncAlt2_state;
+    IncAlt2_go : bool init true;
+
+    // Tactic applicable, start it
+    [IncAlt2_start] sys_go & IncAlt2_go & IncAlt2_state=0 & IncAlt2_applicable & TWO_LEVEL_ENABLED -> (IncAlt2_state'=IncAlt_LATENCY_PERIODS) & (IncAlt2_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & IncAlt2_go & IncAlt2_state=0 & IncAlt2_applicable -> (IncAlt2_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & IncAlt2_go & IncAlt2_state=0 & !IncAlt2_applicable -> 1 : (IncAlt2_go'=false);
+
+    // Progress of the tactic
+    [] sys_go & IncAlt2_go & IncAlt2_state > 1 -> 1: (IncAlt2_state'=IncAlt2_state-1) & (IncAlt2_go'=false);
+
+    // Completion of the tactic
+    [IncAlt2_complete] sys_go & IncAlt2_go & IncAlt2_state=1 -> 1: (IncAlt2_state'=0) & (IncAlt2_go'=true);
+
+    [tick] !IncAlt2_go -> 1: (IncAlt2_go'=true);
+endmodule
+
+
+//************************************************************************
+// TACTIC: DecAlt2
+//************************************************************************
+
+const int DecAlt2_LATENCY_PERIODS = ceil(DecAlt_LATENCY/PERIOD);
+
+// Applicability conditions
+formula DecAlt2_applicable = DecAlt2_compatible & a > 1;
+
+module DecAlt2
+    DecAlt2_state : [0..DecAlt2_LATENCY_PERIODS] init ini_DecAlt2_state;
+    DecAlt2_go : bool init true;
+
+    // Tactic applicable, start it
+    [DecAlt2_start] sys_go & DecAlt2_go & DecAlt2_state=0 & DecAlt2_applicable & TWO_LEVEL_ENABLED -> (DecAlt2_state'=DecAlt2_LATENCY_PERIODS) & (DecAlt2_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & DecAlt2_go & DecAlt2_state=0 & DecAlt2_applicable -> (DecAlt2_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & DecAlt2_go & DecAlt2_state=0 & !DecAlt2_applicable -> 1 : (DecAlt2_go'=false);
+
+    // Progress of the tactic
+    [] sys_go & DecAlt2_go & DecAlt2_state > 1 -> 1: (DecAlt2_state'=DecAlt2_state-1) & (DecAlt2_go'=false);
+
+    // Completion of the tactic
+    [DecAlt2_complete] sys_go & DecAlt2_go & DecAlt2_state=1 -> 1: (DecAlt2_state'=0) & (DecAlt2_go'=true);
+
+    [tick] !DecAlt2_go -> 1: (DecAlt2_go'=true);
+endmodule
+
 
 //*******************************
 // Utility Function

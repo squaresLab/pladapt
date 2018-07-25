@@ -45,6 +45,7 @@ protected:
     double detectionFormationFactor;
     double sensorRange;
 		bool hasEcm;
+		bool twoLevelTactics;
 };
 
 } /* namespace am2 */

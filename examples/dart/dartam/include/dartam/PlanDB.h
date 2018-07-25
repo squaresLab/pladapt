@@ -17,6 +17,8 @@ enum TacticEnum {
 	TICK,
 	INC_ALT,
 	DEC_ALT,
+	INC_ALT2,
+	DEC_ALT2,
 	GO_LOOSE,
 	GO_TIGHT,
 	ECM_ON,

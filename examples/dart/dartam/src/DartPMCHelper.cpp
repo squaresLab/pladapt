@@ -37,7 +37,8 @@ DartPMCHelper::DartPMCHelper(const Params& params)
 	threatRange(params.environmentModel.THREAT_RANGE),
 	detectionFormationFactor(params.environmentModel.TARGET_DETECTION_FORMATION_FACTOR),
 	sensorRange(params.environmentModel.TARGET_SENSOR_RANGE),
-	hasEcm(params.configurationSpace.hasEcm)
+	hasEcm(params.configurationSpace.hasEcm),
+	twoLevelTactics(params.adaptationManager.twoLevelTactics)
 {
 }
 
@@ -74,10 +75,16 @@ std::string DartPMCHelper::generateInitializations(const pladapt::Configuration&
 	initialState << "const init_f = " << config.getFormation() << ';' << endl;
 	initialState << "const bool ECM_ENABLED = " << (hasEcm ? "true" : "false")
 	             << ';' << endl;
+	initialState << "const bool TWO_LEVEL_ENABLED = " << (twoLevelTactics ? "true" : "false")
+ 	             << ';' << endl;
 	initialState << "const int ini_IncAlt_state = " << config.getTtcIncAlt()
 	             << ';' << endl;
 	initialState << "const int ini_DecAlt_state = " << config.getTtcDecAlt()
 	             << ';' << endl;
+	initialState << "const int ini_IncAlt2_state = " << config.getTtcIncAlt2()
+ 	             << ';' << endl;
+ 	initialState << "const int ini_DecAlt2_state = " << config.getTtcDecAlt2()
+ 	             << ';' << endl;
 
 	return initialState.str();
 }

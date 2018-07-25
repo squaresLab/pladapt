@@ -398,6 +398,7 @@ int main(int argc, char** argv) {
 			<< ',' << results.missionSuccess
 			<< ',' << results.decisionTimeAvg
 			<< ',' << results.decisionTimeVar
+			<< ',' << results.numQuickDecisions
 			<<  endl;
 
 	return 0;

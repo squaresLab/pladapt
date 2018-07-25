@@ -189,6 +189,10 @@ TacticEnum PlanDB::get_tactic_code(string tactic_name) {
 		tactic = ECM_ON;
 	}  else if (tactic_name.compare("EcmOff_start") == 0) {
 		tactic = ECM_OFF;
+	}  else if (tactic_name.compare("IncAlt2_start") == 0) {
+		tactic = INC_ALT2;
+	}  else if (tactic_name.compare("DecAlt2_start") == 0) {
+		tactic = DEC_ALT2;
 	}
 
 	return tactic;
@@ -218,6 +222,12 @@ string PlanDB::get_tactic_str(TacticEnum tactic) {
 		break;
 	case ECM_OFF:
 		tactic_str = "EcmOff";
+		break;
+	case INC_ALT2:
+		tactic_str = "IncAlt2_start";
+		break;
+	case DEC_ALT2:
+		tactic_str = "DecAlt2_start";
 		break;
 	default:
 		break;
@@ -272,6 +282,8 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 	state.ecm = config->getEcm() ? 1 : 0;
 	state.incAlt_state = config->getTtcIncAlt();
 	state.decAlt_state = config->getTtcDecAlt();
+	state.incAlt2_state = config->getTtcIncAlt2();
+	state.decAlt2_state = config->getTtcDecAlt2();
 	state.targetDetected = config->getTargetDetected();
 
 	// These are always the same in the states we start from
@@ -286,6 +298,8 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 	state.goLoose_used = false;
 	state.incAlt_go = true;
 	state.decAlt_go = true;
+	state.incAlt2_go = true;
+	state.decAlt2_go = true;
 	state.clockstep = 0;
 	// TODO: May need to check both true and false for satisfied #drew
 	state.satisfied = true;
