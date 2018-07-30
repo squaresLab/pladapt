@@ -36,7 +36,6 @@ public:
     std::string generateInitializations(const pladapt::Configuration& currentConfigObj,
             const pladapt::UtilityFunction& utilityFunction, unsigned horizon) const override;
 
-protected:
     double evaluationPeriod;
     double changeAltitudeLatency;
     int maxAltitudeLevel;

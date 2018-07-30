@@ -19,6 +19,9 @@
  * use and distribution.
  ******************************************************************************/
 #include <dartam/HybridAdaptationManager.h>
+#include <dartam/Parameters.h>
+#include <pladapt/Utils.h>
+#include <pladapt/PMCRAAdaptationManager.h>
 #include <iostream>
 #include <sstream>
 #include <dartam/State.h>
@@ -45,7 +48,6 @@ void HybridAdaptationManager::initialize(std::shared_ptr<const pladapt::Configur
 
 pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configuration& currentConfigObj, const pladapt::EnvironmentDTMCPartitioned& envDTMC,
                                                       const pladapt::UtilityFunction& utilityFunction, unsigned horizon) {
-
 
 	// QUESTION: Is it possible for the model to be open at this point but not #drew
 	//  be loaded into the PlanDB? If so it needs to be accounted for here
@@ -98,9 +100,23 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 
 		savedDTMC = envDTMC;
 
-		//TODO: Use Reactive plan here and return the actions #drew
+		//TODO: Add switch statement to easily change between the various hybrid planners #drew
 
-		return set<string>();
+    pladapt::TacticList result;
+
+    // Check threat level
+    cout << "Threat range:" << dynamic_cast<const DartPMCHelper&>(*pMcHelper).threatRange << endl;
+    if(adjustedConfig.getAltitudeLevel() < dynamic_cast<const DartPMCHelper&>(*pMcHelper).threatRange){
+      cout << "In danger: Fast plan" << endl;
+      auto pAdaptMgr = pladapt::PMCAdaptationManager();
+      pAdaptMgr.initialize(pConfigMgr, params, pMcHelper);
+
+      result = pAdaptMgr.evaluate(currentConfigObj, envDTMC, utilityFunction, 2);
+    } else {
+      cout << "Safe: Waiting for plan" << endl;
+    }
+
+    return result;
 	} else { // If there is an applicable plan, use it
 
 		// Use the plan
