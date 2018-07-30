@@ -245,6 +245,8 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 
 	// TODO: Confirm that these are the correct components for target and threat #drew
 	// Not serious if wrong. We just need to be consistent in the usage here
+	// If we end up weighting the importance of threats over targets (or vice versa)
+	// for a match, then we would have to determine which is which
 	double currentTargetProb = newPredictions->getStateValue(0).getComponent(0).asDouble();
 	double currentThreatProb = newPredictions->getStateValue(0).getComponent(1).asDouble();
 
@@ -302,6 +304,7 @@ bool PlanDB::populate_state_obj(const DartConfiguration* config,
 	state.decAlt2_go = true;
 	state.clockstep = 0;
 	// TODO: May need to check both true and false for satisfied #drew
+	// From what I've seen there are no states in the plan where satisfied = false
 	state.satisfied = true;
 
 	// Take the first state that hashes to a real state

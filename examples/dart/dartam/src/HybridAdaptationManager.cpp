@@ -101,6 +101,8 @@ pladapt::TacticList HybridAdaptationManager::evaluate(const pladapt::Configurati
 		savedDTMC = envDTMC;
 
 		//TODO: Add switch statement to easily change between the various hybrid planners #drew
+    // There is no straightforward way to pass the information to this point from
+    // command line params 
 
     pladapt::TacticList result;
 
