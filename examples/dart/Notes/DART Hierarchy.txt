@@ -1,0 +1,31 @@
+
+Agent
+	Dart Utility Function
+	Dart Adaptation Manager
+		- Not a true adaptation manager, simply switches between the various
+			adaptation managers defined in the main project. They are model agnostic
+			because DART is built on the generic model framework in the main project
+	
+
+Environment
+	Semantics and Coordination
+		Random Seed
+			- Provides consistent randomness throughout the simulation based on the 
+				initial random seed
+		Real Environment
+			- Stores the locations of the targets
+		Environment Monitor
+			- Handles "observing" up to a horizon with a nondeterministic behaviour.
+			- Gives the probablity of a target? being in the location
+			- Based on observations, not the simple probability of there being a target
+				for a generic square
+		
+	Objects
+		Sensor
+		Target Sensor
+		Route
+		Threat
+		Random Seed
+
+		Deterministic Target Sensor
+

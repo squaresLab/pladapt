@@ -1,0 +1,13 @@
+./runexp.sh --adapt-mgr hybrid --decision-horizon 15 --accumulate-observations
+
+Hard coded the epsilon in the PlanDB.cpp
+
+run for epsilons:
+
+0.1
+0.5
+0.75
+1
+1.25
+1.75
+

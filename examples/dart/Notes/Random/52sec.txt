@@ -1,0 +1,6 @@
+./run.sh --adapt-mgr pmc --ecm --altitude-levels 25 --lookahead-horizon 40 --map-size 150 --num-threats 25 --num-targets 25 --two-level-tactics --auto-range
+
+
+--adapt-mgr pmc --ecm --altitude-levels 25 --observation-horizon 40 --map-size 150 --num-threats 25 --num-targets 25 --two-level-tactics --auto-range
+
+--adapt-mgr hybrid --ecm --altitude-levels 25 --decision-horizon 40 --map-size 150 --num-threats 25 --num-targets 25 --auto-range --accumulate-observations
