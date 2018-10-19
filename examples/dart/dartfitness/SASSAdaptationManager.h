@@ -15,6 +15,7 @@ class SASSAdaptationManager : public AdaptationManager
     		const UtilityFunction& utilityFunction, unsigned horizon);
 	    void initialize(std::shared_ptr<const ConfigurationManager> configMgr, const YAML::Node& params);
 	    ~SASSAdaptationManager();
+	    std::string exec(const char* cmd);
 
 };
 

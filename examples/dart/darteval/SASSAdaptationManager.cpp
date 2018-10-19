@@ -3,23 +3,32 @@
 #include <pladapt/UtilityFunction.h>
 #include <pladapt/Configuration.h>
 #include <pladapt/ConfigurationManager.h>
-#include <boost/process.hpp>
 
 using namespace std;
 
-namespace bp = boost::process;
-
 namespace pladapt {
+
+	std::string exec(const char* cmd) {
+    		std::array<char, 128> buffer;
+    		std::string result;
+    		std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    		if (!pipe) throw std::runtime_error("popen() failed!");
+    		while (!feof(pipe.get())) {
+        		if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+            		result += buffer.data();
+    		}
+    		return result;
+	}	
 
 	TacticList SASSAdaptationManager::evaluate(const Configuration& currentConfigObj, const EnvironmentDTMCPartitioned& envDTMC,
         const UtilityFunction& utilityFunction, unsigned horizon){
 
-		std::string exec = "/home/ckinneer/research/pladapt/examples/dart/darteval/runSASS.sh";
+		const char* cmd = "echo test";	
 
-		//std::string exec = "echo \"test\""; 
+		//bp::system("echo test", bp::std_out > stdout, bp::std_err >
+		//stderr, bp::std_in < stdin);
 
-		bp::system(exec, bp::std_out > stdout, bp::std_err >
-stderr, bp::std_in < stdin);
+		cout << exec("echo testing");
 
 		set<string> str { "GoTight" };
     	return str;
