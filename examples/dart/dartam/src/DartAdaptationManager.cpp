@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -21,9 +21,11 @@
 
 #include <dartam/DartAdaptationManager.h>
 #include <dartam/DartConfigurationManager.h>
+#include <dartam/HybridAdaptationManager.h>
 #include <pladapt/Utils.h>
 #include <pladapt/SDPRAAdaptationManager.h>
 #include <pladapt/PMCRAAdaptationManager.h>
+#include <pladapt/PRISMWrapper.h>
 #include <dartam/DartPMCHelper.h>
 #include <math.h>
 
@@ -39,64 +41,78 @@ namespace am2 {
 const string ADAPT_MGR_SDP = "sdp";
 const string ADAPT_MGR_SDPRA = "sdpra";
 const string ADAPT_MGR_PMC = "pmc";
+const string ADAPT_MGR_HYBRID = "hybrid";
 #if DART_USE_CE
 const string ADAPT_MGR_CE = "ce";
 #endif
+
 
 void DartAdaptationManager::instantiateAdaptationMgr(const Params& params) {
 	cout << "Initializing adapt mgr...";
 
 	// initialize config manager
 	configManager = std::make_shared<DartConfigurationManager>(
-			params.configurationSpace.ALTITUDE_LEVELS,
-			pladapt::tacticLatencyToPeriods(params.tactics.changeAltitudeLatency, params.adaptationManager.adaptationPeriod),
-			params.configurationSpace.hasEcm, params.adaptationManager.twoLevelTactics);
+	        params.configurationSpace.ALTITUDE_LEVELS,
+	        pladapt::tacticLatencyToPeriods(params.tactics.changeAltitudeLatency, params.adaptationManager.adaptationPeriod),
+	        params.configurationSpace.hasEcm, params.adaptationManager.twoLevelTactics);
 
 	auto changeAltitudePeriods = pladapt::tacticLatencyToPeriods(params.tactics.changeAltitudeLatency, params.adaptationManager.adaptationPeriod);
 
 	// instantiate and initialize appropriate adapt mgr
 	if (params.adaptationManager.mgr == ADAPT_MGR_PMC) {
-	    YAML::Node amParams;
-	    amParams[pladapt::PMCAdaptationManager::NO_LATENCY] = (params.adaptationManager.nonLatencyAware || changeAltitudePeriods == 0);
-	    amParams[pladapt::PMCAdaptationManager::TEMPLATE_PATH] = params.adaptationManager.PRISM_TEMPLATE;
-	    amParams[pladapt::PMCRAAdaptationManager::PROBABILITY_BOUND] = params.adaptationManager.probabilityBound;
+		YAML::Node amParams;
+		amParams[pladapt::PMCAdaptationManager::NO_LATENCY] = (params.adaptationManager.nonLatencyAware || changeAltitudePeriods == 0);
+		amParams[pladapt::PMCAdaptationManager::TEMPLATE_PATH] = params.adaptationManager.PRISM_TEMPLATE;
+		amParams[pladapt::PMCRAAdaptationManager::PROBABILITY_BOUND] = params.adaptationManager.probabilityBound;
 
-	    auto pAdaptMgr = new pladapt::PMCAdaptationManager;
+		auto pAdaptMgr = new pladapt::PMCAdaptationManager;
 		pAdaptMgr->initialize(configManager, amParams, std::make_shared<const DartPMCHelper>(params));
 		adaptMgr.reset(pAdaptMgr);
+	} else if(params.adaptationManager.mgr == ADAPT_MGR_HYBRID) { // Hybrid manager
+		cout << endl << "Testing" << endl;
+
+
+		YAML::Node amParams;
+		amParams[pladapt::PMCAdaptationManager::NO_LATENCY] = (params.adaptationManager.nonLatencyAware || changeAltitudePeriods == 0);
+		amParams[pladapt::PMCAdaptationManager::TEMPLATE_PATH] = params.adaptationManager.PRISM_TEMPLATE;
+		amParams[pladapt::PMCRAAdaptationManager::PROBABILITY_BOUND] = params.adaptationManager.probabilityBound;
+
+		auto pAdaptMgr = new HybridAdaptationManager();
+		pAdaptMgr->initialize(configManager, amParams,std::make_shared<const DartPMCHelper>(params));
+		adaptMgr.reset(pAdaptMgr);
 	} else { // SDP or derived
-	    YAML::Node amParams;
-	    amParams[pladapt::SDPAdaptationManager::NO_LATENCY] = (params.adaptationManager.nonLatencyAware || changeAltitudePeriods == 0);
-	    amParams[pladapt::SDPAdaptationManager::REACH_OPTIONS] = "-c ConfigDart2";
+		YAML::Node amParams;
+		amParams[pladapt::SDPAdaptationManager::NO_LATENCY] = (params.adaptationManager.nonLatencyAware || changeAltitudePeriods == 0);
+		amParams[pladapt::SDPAdaptationManager::REACH_OPTIONS] = "-c ConfigDart2";
 		amParams[pladapt::SDPAdaptationManager::REACH_PATH] = params.adaptationManager.REACH_PATH;
 		if (!params.adaptationManager.REACH_PREFIX.empty()) {
 			amParams[pladapt::SDPAdaptationManager::REACH_PREFIX] = params.adaptationManager.REACH_PREFIX;
 		}
-	    if (params.adaptationManager.nonLatencyAware && changeAltitudePeriods > 0) {
-	    	amParams[pladapt::SDPAdaptationManager::REACH_MODEL] = params.adaptationManager.REACH_MODEL + "-nla";
-	    } else {
-	    	amParams[pladapt::SDPAdaptationManager::REACH_MODEL] = params.adaptationManager.REACH_MODEL;
-	    }
+		if (params.adaptationManager.nonLatencyAware && changeAltitudePeriods > 0) {
+			amParams[pladapt::SDPAdaptationManager::REACH_MODEL] = params.adaptationManager.REACH_MODEL + "-nla";
+		} else {
+			amParams[pladapt::SDPAdaptationManager::REACH_MODEL] = params.adaptationManager.REACH_MODEL;
+		}
 
-	    stringstream scope;
-	    scope << "A=" << params.configurationSpace.ALTITUDE_LEVELS;
-	    scope << " F=2";
-	    if (changeAltitudePeriods > 0) {
-	        scope << " TPIA#=" <<  changeAltitudePeriods << " TPDA#=" <<  changeAltitudePeriods;
-	        if (params.adaptationManager.twoLevelTactics) {
-	        	scope << " TPIA2#=" <<  changeAltitudePeriods << " TPDA2#=" <<  changeAltitudePeriods;
-	        }
-	    }
+		stringstream scope;
+		scope << "A=" << params.configurationSpace.ALTITUDE_LEVELS;
+		scope << " F=2";
+		if (changeAltitudePeriods > 0) {
+			scope << " TPIA#=" <<  changeAltitudePeriods << " TPDA#=" <<  changeAltitudePeriods;
+			if (params.adaptationManager.twoLevelTactics) {
+				scope << " TPIA2#=" <<  changeAltitudePeriods << " TPDA2#=" <<  changeAltitudePeriods;
+			}
+		}
 
-	    amParams[pladapt::SDPAdaptationManager::REACH_SCOPE] = scope.str();
+		amParams[pladapt::SDPAdaptationManager::REACH_SCOPE] = scope.str();
 
-	    amParams[pladapt::SDPRAAdaptationManager::PROBABILITY_BOUND] = params.adaptationManager.probabilityBound;
+		amParams[pladapt::SDPRAAdaptationManager::PROBABILITY_BOUND] = params.adaptationManager.probabilityBound;
 
 #if DART_USE_CE
-	    if (params.adaptationManager.mgr == ADAPT_MGR_CE) {
-	    	amParams[pladapt::CEAdaptationManager::CE_INCREMENTAL] = params.adaptationManager.ce_incremental;
-	    	amParams[pladapt::CEAdaptationManager::CE_HINT_WEIGHT] = params.adaptationManager.ce_hintWeight;
-	    	amParams[pladapt::CEAdaptationManager::CE_SAMPLES] = params.adaptationManager.ce_samples;
+		if (params.adaptationManager.mgr == ADAPT_MGR_CE) {
+			amParams[pladapt::CEAdaptationManager::CE_INCREMENTAL] = params.adaptationManager.ce_incremental;
+			amParams[pladapt::CEAdaptationManager::CE_HINT_WEIGHT] = params.adaptationManager.ce_hintWeight;
+			amParams[pladapt::CEAdaptationManager::CE_SAMPLES] = params.adaptationManager.ce_samples;
 			amParams[pladapt::CEAdaptationManager::CE_ALPHA] = params.adaptationManager.ce_alpha;
 			amParams[pladapt::CEAdaptationManager::CE_PRECISION] = params.adaptationManager.ce_precision;
 			amParams[pladapt::CEAdaptationManager::CE_MAX_ITERATIONS] = params.adaptationManager.ce_maxIterations;
@@ -129,15 +145,15 @@ void DartAdaptationManager::instantiateAdaptationMgr(const Params& params) {
 void DartAdaptationManager::initialize(const Params& params, std::unique_ptr<pladapt::UtilityFunction> utilityFunction) {
 	this->params = params;
 	pEnvThreatMonitor.reset(
-			new EnvironmentMonitor(
-					unique_ptr<Sensor>(
-							new Sensor(params.longRangeSensor.THREAT_SENSOR_FPR,
-									params.longRangeSensor.THREAT_SENSOR_FNR))));
+	        new EnvironmentMonitor(
+	                unique_ptr<Sensor>(
+	                        new Sensor(params.longRangeSensor.THREAT_SENSOR_FPR,
+	                                   params.longRangeSensor.THREAT_SENSOR_FNR))));
 	pEnvTargetMonitor.reset(
-			new EnvironmentMonitor(
-					unique_ptr<Sensor>(
-							new Sensor(params.longRangeSensor.TARGET_SENSOR_FPR,
-									params.longRangeSensor.TARGET_SENSOR_FNR))));
+	        new EnvironmentMonitor(
+	                unique_ptr<Sensor>(
+	                        new Sensor(params.longRangeSensor.TARGET_SENSOR_FPR,
+	                                   params.longRangeSensor.TARGET_SENSOR_FNR))));
 
 	instantiateAdaptationMgr(params);
 
@@ -145,7 +161,7 @@ void DartAdaptationManager::initialize(const Params& params, std::unique_ptr<pla
 }
 
 pladapt::TacticList DartAdaptationManager::decideAdaptation(
-		const DartMonitoringInfo& monitoringInfo) {
+        const DartMonitoringInfo& monitoringInfo) {
 
 	/* update environment */
 	pEnvThreatMonitor->update(monitoringInfo.threatSensing);
@@ -153,8 +169,8 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
 
 	/* build env model with information collected so far */
 	Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
-	DartDTMCEnvironment threatDTMC(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
-	DartDTMCEnvironment targetDTMC(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment threatDTMC = DartDTMCEnvironment(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment targetDTMC = DartDTMCEnvironment(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
 	pladapt::EnvironmentDTMCPartitioned jointEnv = pladapt::EnvironmentDTMCPartitioned::createJointDTMC(threatDTMC, targetDTMC);
 
 	/* make adaptation decision */
@@ -165,9 +181,9 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
 DartConfiguration DartAdaptationManager::convertToDiscreteConfiguration(const DartMonitoringInfo& info) const {
 	unsigned altitudeLevel = round(info.altitude * (params.configurationSpace.ALTITUDE_LEVELS - 1) / params.configurationSpace.maxAltitude);
 	DartConfiguration::Formation formation =
-			(info.formation == 0) ?
-					DartConfiguration::Formation::LOOSE :
-					DartConfiguration::Formation::TIGHT;
+	        (info.formation == 0) ?
+	        DartConfiguration::Formation::LOOSE :
+	        DartConfiguration::Formation::TIGHT;
 	unsigned ttcIncAlt = round(info.ttcIncAlt / params.adaptationManager.adaptationPeriod);
 	unsigned ttcDecAlt = round(info.ttcDecAlt / params.adaptationManager.adaptationPeriod);
 	unsigned ttcIncAlt2 = round(info.ttcIncAlt2 / params.adaptationManager.adaptationPeriod);
@@ -175,7 +191,7 @@ DartConfiguration DartAdaptationManager::convertToDiscreteConfiguration(const Da
 
 	// TODO formation change assumed instantaneous for now
 
-	return DartConfiguration(altitudeLevel, formation, ttcIncAlt, ttcDecAlt, ttcIncAlt2, ttcDecAlt2, info.ecm);
+	return DartConfiguration(altitudeLevel, formation, ttcIncAlt, ttcDecAlt, ttcIncAlt2, ttcDecAlt2, info.timestep ,info.ecm);
 }
 
 void DartAdaptationManager::printEnvironment() {

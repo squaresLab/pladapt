@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -28,8 +28,7 @@
 #include <string>
 #include <boost/tokenizer.hpp>
 #include <cstdlib>
-#include <set>
-#include <string.h>
+
 #include <map>
 #include <iostream>
 #include <sstream>
@@ -48,31 +47,32 @@ const char* PRISM = "prism";
 const char* TACTIC_SUFFIX = "_start";
 
 PRISMWrapper::PRISMWrapper() {
+	modelOpen = false;
+	storedPath = nullptr;
 }
 
 void PRISMWrapper::setModelTemplatePath(const std::string& modelTemplatePath) {
-    // unless it's an absolute path, prefix it with .. because will be in the temp dir when this is used
-    if (modelTemplatePath[0] == '/') {
-        this->modelTemplatePath = modelTemplatePath;
-    } else {
-        this->modelTemplatePath = string("../") + modelTemplatePath;
-    }
+	// unless it's an absolute path, prefix it with .. because will be in the temp dir when this is used
+	if (modelTemplatePath[0] == '/') {
+		this->modelTemplatePath = modelTemplatePath;
+	} else {
+		this->modelTemplatePath = string("../") + modelTemplatePath;
+	}
 }
 
 void PRISMWrapper::setPrismOptions(const std::vector<std::string>& options) {
 	prismOptions = options;
 }
 
-bool PRISMWrapper::runPrism(const char* modelPath, const char* adversaryPath, const char* statesPath,
-		const char* labelsPath, const char* pctl) {
+bool PRISMWrapper::runPrism(const char* pctl) {
 	// TODO need to throw exceptions to provide better error handling
 	pid_t pid = fork();
 	if (pid == 0) {
 
 		// create args vector
 		std::vector<const char*> argv = { PRISM, modelPath, "-pctl", pctl,
-				"-exportadv", adversaryPath, "-exportstates", statesPath,
-				"-exportlabels", labelsPath };
+			                          "-exportadv", adversaryPath, "-exportstates", statesPath,
+			                          "-exportlabels", labelsPath };
 		for (const auto& opt : prismOptions) {
 			argv.push_back(opt.c_str());
 		}
@@ -83,7 +83,7 @@ bool PRISMWrapper::runPrism(const char* modelPath, const char* adversaryPath, co
 		// see this url for example: http://www.cs.uleth.ca/~holzmann/C/system/pipeforkexec.html
 		int status = execvp(PRISM, (char* const*) argv.data());
 		if (status == -1) { // the only option really, otherwise execlp doesn't return
-		    throw runtime_error(string("runPrism() execlp: ") + strerror(errno));
+			throw runtime_error(string("runPrism() execlp: ") + strerror(errno));
 		}
 	} else if (pid == -1) {
 		throw runtime_error(string("runPrism() fork: ") + strerror(errno));
@@ -104,7 +104,7 @@ bool PRISMWrapper::runPrism(const char* modelPath, const char* adversaryPath, co
  *
  * Assumption: time is the first variable in the state
  */
-set<int> getNowStates(const char* statesPath) {
+set<int> PRISMWrapper::getNowStates() {
 	// TODO throw exception on error (but be careful with the method that calls this one)
 
 	/*
@@ -164,8 +164,7 @@ struct AdversaryRow {
 
 typedef map<int, AdversaryRow> AdversaryTable;
 
-vector<string> getActions(const char* adversaryPath, const char* labelsPath,
-		set<int>& states) {
+vector<string> PRISMWrapper::getActions(set<int>& states) {
 	// TODO throw exception on error
 
 	/*
@@ -228,7 +227,7 @@ vector<string> getActions(const char* adversaryPath, const char* labelsPath,
 	// now find the initial state;
 	/*
 	 * assumptions:
-	 * 	0 is "initial", and 0 is always the first label if it appears in a row
+	 *      0 is "initial", and 0 is always the first label if it appears in a row
 	 */
 	int state = -1;
 	ifstream labels(labelsPath);
@@ -294,12 +293,12 @@ bool PRISMWrapper::generateModel(string environmentModel, string initialState, c
 		cout << "Could not read input file " << get_current_dir_name() << '/' << modelTemplatePath << endl;
 		cout << "Error is: " << strerror(errno) << endl;
 		cout << "Retrying..." << endl;
-	    fin.open(modelTemplatePath.c_str(), ifstream::in);
-	    if (!fin) {
-	        cout << "Could not read input file " << get_current_dir_name() << '/' << modelTemplatePath << endl;
-	        cout << "Error is: " << strerror(errno) << endl;
-	        return false;
-	    }
+		fin.open(modelTemplatePath.c_str(), ifstream::in);
+		if (!fin) {
+			cout << "Could not read input file " << get_current_dir_name() << '/' << modelTemplatePath << endl;
+			cout << "Error is: " << strerror(errno) << endl;
+			return false;
+		}
 		cout << "it worked!" << endl;
 	}
 
@@ -320,21 +319,17 @@ bool PRISMWrapper::generateModel(string environmentModel, string initialState, c
 }
 
 std::vector<std::string> PRISMWrapper::plan(const std::string& environmentModel, const std::string& initialState,
-		const std::string& pctl, std::string* path) {
-	const char* modelPath = "ttimemodel.prism";
-	const char* adversaryPath = "result.adv";
-	const char* statesPath = "result.sta";
-	const char* labelsPath = "result.lab";
+                                            const std::string& pctl, std::string* path) {
 
 	// create temp directory
 	char tempDirTemplate[] = "modelXXXXXX";
-	char* tempDir = mkdtemp(tempDirTemplate);
+	tempDir = mkdtemp(tempDirTemplate);
 	if (!tempDir) {
 		throw runtime_error("error PRISMWrapper::plan mkdtemp");
 	}
 
 	// save current dir and chdir into the temp
-	int currentDir = open(".", O_RDONLY);
+	currentDir = open(".", O_RDONLY);
 	if (currentDir == -1) {
 		throw runtime_error("error PRISMWrapper::plan chdir");
 	}
@@ -344,68 +339,146 @@ std::vector<std::string> PRISMWrapper::plan(const std::string& environmentModel,
 	}
 	vector<string> actions;
 
-	{
-		BOOST_SCOPE_EXIT(&path, &tempDir, &modelPath, &adversaryPath, &statesPath, &labelsPath, &currentDir) {
-	        // restore current dir and remove temp if needed
-	        if (path) {
-	            path->assign(tempDir);
-	        } else {
-	            remove(modelPath);
-	            remove(adversaryPath);
-	            remove(statesPath);
-	            remove(labelsPath);
-	        }
-
-	        if (fchdir(currentDir) == -1) {}; // nothing we can do about it
-	        close(currentDir);
-
-	        if (!path) {
-	            rmdir(tempDir);
-	        }
-		} BOOST_SCOPE_EXIT_END
-
-        // generate model
-        /*
-         * perhaps this could take a probability tree as an argument, and then generate the
-         * prism model with the DTMC for the env and the right initial state, reflecting the
-         * state of the system and running tactics
-         *
-         * The tactics should also be read from some input file, because the
-         * latency information needs to be used in the model and also here to compute
-         * the initial state reflecting the progress of the tactics.
-         * Also, if we monitor that the tactic has not finished, even though it should have, we
-         * can set the initial state so that it seems that it has one period to go.
-         */
-
-        if (generateModel(environmentModel, initialState, modelPath)) {
-            if (runPrism(modelPath, adversaryPath, statesPath, labelsPath,
-            		pctl.c_str())) {
-            	if (boost::filesystem::exists(adversaryPath)) {
-					set<int> states = getNowStates(statesPath);
-					actions = getActions(adversaryPath, labelsPath, states);
-            	} else {
-            		throw std::domain_error("PRISM didn't generate an adversary");
-            	}
-            } else {
-                throw runtime_error("error PRISMWrapper::plan runPrism");
-            }
-        } else {
-            throw runtime_error("error PRISMWrapper::plan generateModel");
-        }
+	if(path) {
+		storedPath = path;
 	}
+
+	// Save the path to the model directory
+	char* buff = new char[400];
+	buff = getcwd(buff,400);
+	modelDirectory = string(buff);
+	delete [] buff;
+
+	// generate model
+	/*
+	 * perhaps this could take a probability tree as an argument, and then generate the
+	 * prism model with the DTMC for the env and the right initial state, reflecting the
+	 * state of the system and running tactics
+	 *
+	 * The tactics should also be read from some input file, because the
+	 * latency information needs to be used in the model and also here to compute
+	 * the initial state reflecting the progress of the tactics.
+	 * Also, if we monitor that the tactic has not finished, even though it should have, we
+	 * can set the initial state so that it seems that it has one period to go.
+	 */
+
+	if (generateModel(environmentModel, initialState, modelPath)) {
+		if (runPrism(pctl.c_str()))
+		{
+			if (boost::filesystem::exists(adversaryPath)) {
+				set<int> states = getNowStates();
+				actions = getActions(states);
+			} else {
+				throw std::domain_error("PRISM didn't generate an adversary");
+			}
+		} else {
+			throw runtime_error("error PRISMWrapper::plan runPrism");
+		}
+	} else {
+		throw runtime_error("error PRISMWrapper::plan generateModel");
+	}
+
+	// Clean the files generated by PRISM
+	void closeModel();
 
 	return actions;
 }
 
+void PRISMWrapper::generatePersistentPlan(const std::string& environmentModel, const std::string& initialState,
+                                          const std::string& pctl, std::string* path){
+
+	// Ensures only one model is saved per PRISMWrapper class
+	if(modelOpen) {
+		closeModel();
+	} else {
+		modelOpen = true;
+	}
+
+	// create temp directory
+	char tempDirTemplate[] = "modelXXXXXX";
+	tempDir = mkdtemp(tempDirTemplate);
+	if (!tempDir) {
+		throw runtime_error("error PRISMWrapper::plan mkdtemp");
+	}
+
+	// save current dir and chdir into the temp
+	currentDir = open(".", O_RDONLY);
+	if (currentDir == -1) {
+		throw runtime_error("error PRISMWrapper::plan chdir");
+	}
+	if (chdir(tempDir) != 0) {
+		close(currentDir);
+		throw runtime_error("error PRISMWrapper::plan chdir");
+	}
+	vector<string> actions;
+
+	if(path) {
+		storedPath = path;
+	}
+
+	// Save the path to the model directory
+	char* buff = new char[400];
+	buff = getcwd(buff,400);
+	modelDirectory = string(buff);
+	delete [] buff;
+
+
+	if (generateModel(environmentModel, initialState, modelPath)) {
+		if (runPrism(pctl.c_str()))
+		{
+			if (boost::filesystem::exists(adversaryPath)) {
+				set<int> states = getNowStates();
+				actions = getActions(states);
+			} else {
+				throw std::domain_error("PRISM didn't generate an adversary");
+			}
+		} else {
+			throw runtime_error("error PRISMWrapper::plan runPrism");
+		}
+	} else {
+		throw runtime_error("error PRISMWrapper::plan generateModel");
+	}
+}
+
+void PRISMWrapper::closeModel(){
+	// restore current dir and remove temp if needed
+	if (storedPath != nullptr) {
+		storedPath->assign(tempDir);
+	} else {
+		remove(modelPath);
+		remove(adversaryPath);
+		remove(statesPath);
+		remove(labelsPath);
+	}
+
+	if (fchdir(currentDir) == -1) {}; // nothing we can do about it
+	close(currentDir);
+
+	if (!storedPath) {
+		rmdir(modelDirectory.c_str());
+	}
+
+	modelOpen = false;
+}
+
+bool PRISMWrapper::isModelOpen(){
+	return modelOpen;
+}
+
+string PRISMWrapper::getModelDirectory(){
+	return modelDirectory;
+}
+
 void PRISMWrapper::test() {
-	set<int> states = getNowStates("test/s.sta");
-	vector<string> actions = getActions("test/a.adv", "test/l.lab", states);
+	set<int> states = getNowStates();
+	vector<string> actions = getActions(states);
 	for (unsigned i = 0; i < actions.size(); i++) {
 		cout << "Action: " << actions[i] << endl;
 	}
 }
 
 PRISMWrapper::~PRISMWrapper() {
+	closeModel();
 	// TODO Auto-generated destructor stub
 }
 

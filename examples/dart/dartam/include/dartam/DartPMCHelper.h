@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -36,7 +36,6 @@ public:
     std::string generateInitializations(const pladapt::Configuration& currentConfigObj,
             const pladapt::UtilityFunction& utilityFunction, unsigned horizon) const override;
 
-protected:
     double evaluationPeriod;
     double changeAltitudeLatency;
     int maxAltitudeLevel;
@@ -44,6 +43,8 @@ protected:
     double threatRange;
     double detectionFormationFactor;
     double sensorRange;
+		bool hasEcm;
+		bool twoLevelTactics;
 };
 
 } /* namespace am2 */

@@ -1,0 +1,15 @@
+The code is made in 3 levels:
+  -PLADAPT Framework: Gives the generic framework for instantiating an environement and configuration
+  -DART: A specific instantiation of the framework for the drone missions
+  -Main/Simulation: 
+    - Provides the command line interface for DART
+    - Glues the pieces together in a Sim loop
+
+Currently when implementing the PlanDB structure it was necessary to violate the PLADAPT/DART separation.
+The Hybrid adaptation manager was implemented on the DART side. To accomodate the extra functionality,
+I added to the PRISMWrapper to allow for Plan files to just be generated and deleted at a different time.
+I still preserved the functionality of the PMC adaptation manager.
+
+There are a couple places where I put TODO or QUESTION comments with the #drew tag. These are places where
+I ran into assumptions/design decisions that could come up later. Most should be fine, but they are
+useful to have marked.

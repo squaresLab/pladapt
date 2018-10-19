@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -65,6 +65,8 @@ struct DartMonitoringInfo {
 	double ttcDecAlt2; /**< time to complete altitude decrease 2, 0 means not executing */
 	bool ecm; /**< if ECM is on */
 	double ttcFormationChange;  /**< time to complete altitude change, 0 means no ongoing change */
+
+	unsigned timestep;
 
 	/**
 	 * Results of threat sensing

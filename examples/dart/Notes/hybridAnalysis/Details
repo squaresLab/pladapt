@@ -1,0 +1,10 @@
+
+Deliberative:
+--adapt-mgr hybrid --decision-horizon 5 --observation-horizon 5 --ecm --altitude-levels 6 --two-level-tactics --auto-range --accumulate-observations
+Reactive
+--adapt-mgr pmc --decision-horizon 2 --observation-horizon 5 --ecm --altitude-levels 6 --two-level-tactics --auto-range --accumulate-observations
+
+
+Experiments run with:
+./runexp.sh --adapt-mgr hybrid --decision-horizon 5 --observation-horizon 5 --ecm --altitude-levels 6 --two-level-tactics --auto-range --accumulate-observations
+./runexp.sh --adapt-mgr pmc --decision-horizon 2 --observation-horizon 5 --ecm --altitude-levels 6 --two-level-tactics --auto-range --accumulate-observations

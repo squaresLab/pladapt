@@ -1,0 +1,40 @@
+PLADAPT FRAMEWORK
+
+AdaptationManager
+	- Handles computing, storing and retrieving a strategy (List of tactics to be taken)
+Configuration
+	- Stores the current configuration of the agent. In the case of DART this is the current
+		formation,  altitude and time until current tatics complete
+ConfigurationManager
+	- Appears to store the bounds of the configuration data. In DART this is the number of altitude levels and the latency with changing a level
+ConfigurationSpace
+	- Stores the configuration space of all possible configurations
+Environment
+	- Stores the locations of an environment object (not specified)
+	- Intended to be used with a JointEnvironment
+JointEnvironment
+	- Stores a vector of Evironment pointers
+	- Allows the storage of multiple environment objects (ie threats and targets)
+	- Each environment stores a map for a specific env. object type
+UtilityFunction
+Utils
+	- Functions for conversions. Put here to be easily changed globally
+DTMCPartitionedStates
+	- Referenced in SDP and SDPRA
+
+Adaptation Managers:
+	SDP
+		SDPAdaptationManager
+	SDPRA
+		SDPRAAdaptaitonManager
+	PMC (PRISM)
+	PMCRA
+	JavaSDP
+
+/* Example or testing subclasses of the framework */
+GenericEnvironment
+	- Example environment used for reference and testing
+GenericUtilityFunction
+	- Example utility function used for reference and testing
+GenericProperties
+GenericConfiguration

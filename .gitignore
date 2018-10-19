@@ -4,12 +4,14 @@
 .deps/
 .dirstamp
 /build/
+/html/
 Makefile
 !*.cpp
 !.cproject
 !.project
 *~
 .settings
+.tags
 
 # http://www.gnu.org/software/automake
 
@@ -55,4 +57,3 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 autom4te.cache
-

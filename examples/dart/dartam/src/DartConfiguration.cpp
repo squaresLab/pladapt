@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -27,10 +27,10 @@ namespace am2 {
 
 DartConfiguration::DartConfiguration(unsigned altitudeLevel,
 		Formation formation, unsigned ttcIncAlt, unsigned ttcDecAlt,
-		unsigned ttcIncAlt2, unsigned ttcDecAlt2, bool ecm)
+		unsigned ttcIncAlt2, unsigned ttcDecAlt2, unsigned timestep, bool ecm)
 	: altitudeLevel(altitudeLevel), formation(formation), ttcIncAlt(ttcIncAlt), ttcDecAlt(ttcDecAlt),
 	  ttcIncAlt2(ttcIncAlt2), ttcDecAlt2(ttcDecAlt2),
-	  ecm(ecm)
+	  ecm(ecm), timestep(timestep), targetDetected(false)
 {
 }
 
@@ -55,20 +55,32 @@ DartConfiguration::Formation DartConfiguration::getFormation() const {
 	return formation;
 }
 
+// Returns the number of periods until the adaptation tactic completes
 unsigned DartConfiguration::getTtcDecAlt() const {
 	return ttcDecAlt;
 }
 
+// Returns the number of periods until the adaptation tactic completes
 unsigned DartConfiguration::getTtcIncAlt() const {
 	return ttcIncAlt;
 }
 
+// Returns the number of periods until the adaptation tactic completes
 unsigned DartConfiguration::getTtcDecAlt2() const {
 	return ttcDecAlt2;
 }
 
+// Returns the number of periods until the adaptation tactic completes
 unsigned DartConfiguration::getTtcIncAlt2() const {
 	return ttcIncAlt2;
+}
+
+unsigned DartConfiguration::getTimestep() const {
+	return timestep;
+}
+
+bool DartConfiguration::getTargetDetected() const {
+	return targetDetected;
 }
 
 void DartConfiguration::setAltitudeLevel(unsigned altitudeLevel) {
@@ -95,6 +107,14 @@ void DartConfiguration::setTtcIncAlt2(unsigned ttcIncAlt2) {
 	this->ttcIncAlt2 = ttcIncAlt2;
 }
 
+void DartConfiguration::setTimestep(unsigned timestep){
+	this->timestep = timestep;
+}
+
+void DartConfiguration::setTargetDetected(bool targetDetected) {
+	this->targetDetected = targetDetected;
+}
+
 bool DartConfiguration::getEcm() const {
 	return ecm;
 }
@@ -117,4 +137,3 @@ bool DartConfiguration::equals(const Configuration& other) const {
 
 } /* namespace am2 */
 } /* namespace dart */
-

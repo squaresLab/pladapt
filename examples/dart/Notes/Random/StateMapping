@@ -1,0 +1,6 @@
+altitudeLevel -> a
+formation -> f
+ttcIncAlt -> IncAlt_state 
+ttcDecAlt -> DecAlt_state
+
+s -> needs to have an extra step to convert the state into the predicted value. Then that can be compared to the current prediction with some epsilon

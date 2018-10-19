@@ -5,6 +5,9 @@ mdp
 //const int MAX_ALT_LEVEL
 //const int init_a
 //const int init_f
+//const int init_c
+//const bool ECM_ENABLED
+//const bool TWO_LEVEL_ENABLED
 //const double IncAlt_LATENCY
 //const double DecAlt_LATENCY
 //const int ini_IncAlt_state
@@ -13,6 +16,7 @@ mdp
 //const double threatRange
 //const double detectionFormationFactor
 //const double sensorRange
+
 
 //#init
 
@@ -45,22 +49,30 @@ module env
 // Variable range and initialization
 const a_MIN=0; const a_MAX=MAX_ALT_LEVEL; const a_INIT=init_a;
 const f_MIN=0; const f_MAX=1; const f_INIT=init_f;
+const c_MIN=0; const c_MAX=1; const c_INIT=init_c;
 
 module sys
 	a : [a_MIN..a_MAX] init a_INIT;
 	f : [f_MIN..f_MAX] init f_INIT;
-	
+  c : [c_MIN..c_MAX] init c_INIT;
+
+  [EcmOn_start] c=0 & ECM_ENABLED -> 1: (c'=c_EcmOn_impact);
+  [EcmOff_start] c=1 & ECM_ENABLED -> 1: (c'=c_EcmOff_impact);
 	[GoTight_start] f=0 -> 1: (a'=a_GoTight_impact)
 		 &  (f'=f_GoTight_impact);
 	[GoLoose_start] f=1 -> 1: (a'=a_GoLoose_impact)
 		 &  (f'=f_GoLoose_impact);
 	[IncAlt_complete] a < MAX_ALT_LEVEL -> 1:  (a'=a_IncAlt_impact)
 	 	&  (f'=f_IncAlt_impact);
+  [IncAlt2_complete] a < MAX_ALT_LEVEL-1 & TWO_LEVEL_ENABLED -> 1:  (a'=a_IncAlt2_impact);
 	[DecAlt_complete] a > 0 -> 1:  (a'=a_DecAlt_impact)
 		 &  (f'=f_DecAlt_impact);
+  [DecAlt2_complete] a > 1 & TWO_LEVEL_ENABLED -> 1:  (a'=a_DecAlt2_impact);
 endmodule
 
 
+formula c_EcmOn_impact = c + (1) >= c_MIN ? ( c+(1)<=c_MAX?  c+(1) : c_MAX) : c_MIN;
+formula c_EcmOff_impact = c + (-1) >= c_MIN ? ( c+(-1)<=c_MAX?  c+(-1) : c_MAX) : c_MIN;
 formula a_GoTight_impact = a + (0) >= a_MIN ? ( a+(0)<=a_MAX?  a+(0) : a_MAX) : a_MIN;
 formula f_GoTight_impact = f + (1) >= f_MIN ? ( f+(1)<=f_MAX?  f+(1) : f_MAX) : f_MIN;
 formula a_GoLoose_impact = a + (0) >= a_MIN ? ( a+(0)<=a_MAX?  a+(0) : a_MAX) : a_MIN;
@@ -69,16 +81,72 @@ formula a_IncAlt_impact = a + (1) >= a_MIN ? ( a+(1)<=a_MAX?  a+(1) : a_MAX) : a
 formula f_IncAlt_impact = f + (0) >= f_MIN ? ( f+(0)<=f_MAX?  f+(0) : f_MAX) : f_MIN;
 formula a_DecAlt_impact = a + (-1) >= a_MIN ? ( a+(-1)<=a_MAX?  a+(-1) : a_MAX) : a_MIN;
 formula f_DecAlt_impact = f + (0) >= f_MIN ? ( f+(0)<=f_MAX?  f+(0) : f_MAX) : f_MIN;
-
+formula a_IncAlt2_impact = a + (2) >= a_MIN ? ( a+(2)<=a_MAX?  a+(2) : a_MAX) : a_MIN;
+formula a_DecAlt2_impact = a + (-2) >= a_MIN ? ( a+(-2)<=a_MAX?  a+(-2) : a_MAX) : a_MIN;
 
 // tactic concurrency rules
 formula IncAlt_used = IncAlt_state != 0;
 formula DecAlt_used = DecAlt_state != 0;
+formula IncAlt2_used = IncAlt2_state != 0;
+formula DecAlt2_used = DecAlt2_state != 0;
 
+formula EcmOn_compatible = !EcmOn_used;
+formula EcmOff_compatible = !EcmOff_used;
 formula GoTight_compatible = !GoLoose_used;
 formula GoLoose_compatible = !GoTight_used;
-formula IncAlt_compatible = !DecAlt_used;
-formula DecAlt_compatible = !IncAlt_used;
+formula IncAlt_compatible = (!DecAlt_used) & (!IncAlt2_used) & (!DecAlt2_used);
+formula DecAlt_compatible = (!IncAlt_used) & (!IncAlt2_used) & (!DecAlt2_used);
+formula IncAlt2_compatible = (!DecAlt_used) & (!IncAlt_used) & (!DecAlt2_used);
+formula DecAlt2_compatible = (!DecAlt_used) & (!IncAlt_used) & (!IncAlt2_used);
+
+
+//************************************************************************
+// TACTIC: EcmOn
+//************************************************************************
+
+// Applicability conditions
+formula EcmOn_applicable = EcmOn_compatible & c=0;
+
+module EcmOn
+    EcmOn_used : bool init false;
+    EcmOn_go : bool init true;
+
+    // Tactic applicable, start it
+    [EcmOn_start] sys_go & EcmOn_go & EcmOn_applicable & ECM_ENABLED -> (EcmOn_used'=true) & (EcmOn_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & EcmOn_go & EcmOn_applicable -> (EcmOn_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & EcmOn_go & !EcmOn_applicable -> 1 : (EcmOn_go'=false);
+
+    [tick] !EcmOn_go -> 1: (EcmOn_go'=true) & (EcmOn_used'=false);
+endmodule
+
+
+//************************************************************************
+// TACTIC: EcmOff
+//************************************************************************
+
+// Applicability conditions
+formula EcmOff_applicable = EcmOff_compatible & f=1;
+
+module EcmOff
+    EcmOff_used : bool init false;
+    EcmOff_go : bool init true;
+
+    // Tactic applicable, start it
+    [EcmOff_start] sys_go & EcmOff_go & EcmOff_applicable & ECM_ENABLED -> (EcmOff_used'=true) & (EcmOff_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & EcmOff_go & EcmOff_applicable -> (EcmOff_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & EcmOff_go & !EcmOff_applicable -> 1 : (EcmOff_go'=false);
+
+    [tick] !EcmOff_go -> 1: (EcmOff_go'=true) & (EcmOff_used'=false);
+endmodule
+
 
 //************************************************************************
 // TACTIC: GoTight
@@ -191,16 +259,80 @@ module DecAlt
     [tick] !DecAlt_go -> 1: (DecAlt_go'=true);
 endmodule
 
+//************************************************************************
+// TACTIC: IncAlt2
+//************************************************************************
+
+// Applicability conditions
+formula IncAlt2_applicable = IncAlt2_compatible & a < MAX_ALT_LEVEL-1;
+
+module IncAlt2
+    IncAlt2_state : [0..IncAlt_LATENCY_PERIODS] init ini_IncAlt2_state;
+    IncAlt2_go : bool init true;
+
+    // Tactic applicable, start it
+    [IncAlt2_start] sys_go & IncAlt2_go & IncAlt2_state=0 & IncAlt2_applicable & TWO_LEVEL_ENABLED -> (IncAlt2_state'=IncAlt_LATENCY_PERIODS) & (IncAlt2_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & IncAlt2_go & IncAlt2_state=0 & IncAlt2_applicable -> (IncAlt2_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & IncAlt2_go & IncAlt2_state=0 & !IncAlt2_applicable -> 1 : (IncAlt2_go'=false);
+
+    // Progress of the tactic
+    [] sys_go & IncAlt2_go & IncAlt2_state > 1 -> 1: (IncAlt2_state'=IncAlt2_state-1) & (IncAlt2_go'=false);
+
+    // Completion of the tactic
+    [IncAlt2_complete] sys_go & IncAlt2_go & IncAlt2_state=1 -> 1: (IncAlt2_state'=0) & (IncAlt2_go'=true);
+
+    [tick] !IncAlt2_go -> 1: (IncAlt2_go'=true);
+endmodule
+
+
+//************************************************************************
+// TACTIC: DecAlt2
+//************************************************************************
+
+const int DecAlt2_LATENCY_PERIODS = ceil(DecAlt_LATENCY/PERIOD);
+
+// Applicability conditions
+formula DecAlt2_applicable = DecAlt2_compatible & a > 1;
+
+module DecAlt2
+    DecAlt2_state : [0..DecAlt2_LATENCY_PERIODS] init ini_DecAlt2_state;
+    DecAlt2_go : bool init true;
+
+    // Tactic applicable, start it
+    [DecAlt2_start] sys_go & DecAlt2_go & DecAlt2_state=0 & DecAlt2_applicable & TWO_LEVEL_ENABLED -> (DecAlt2_state'=DecAlt2_LATENCY_PERIODS) & (DecAlt2_go'=false);
+
+    // Tactic applicable, but do not start it
+    [] sys_go & DecAlt2_go & DecAlt2_state=0 & DecAlt2_applicable -> (DecAlt2_go'=false);
+
+    // Pass if the tactic is not applicable
+    [] sys_go & DecAlt2_go & DecAlt2_state=0 & !DecAlt2_applicable -> 1 : (DecAlt2_go'=false);
+
+    // Progress of the tactic
+    [] sys_go & DecAlt2_go & DecAlt2_state > 1 -> 1: (DecAlt2_state'=DecAlt2_state-1) & (DecAlt2_go'=false);
+
+    // Completion of the tactic
+    [DecAlt2_complete] sys_go & DecAlt2_go & DecAlt2_state=1 -> 1: (DecAlt2_state'=0) & (DecAlt2_go'=true);
+
+    [tick] !DecAlt2_go -> 1: (DecAlt2_go'=true);
+endmodule
+
+
 //*******************************
 // Utility Function
 //*******************************
 const int LOOSE = 0;
 const int TIGHT = 1;
+const int EMC_ON = 1;
 
 formula probOfThreat = stateValue;
 
 formula probabilityOfDestruction = probOfThreat
 	* ((f = LOOSE) ? 1.0 : (1.0 / destructionFormationFactor))
+  * ((c = EMC_ON) ? 0.25 : 1.0)
 		* max(0.0, threatRange - (a + 1)) / threatRange; // +1 because level 0 is one level above ground
 
 module constraint // in this case the constraint is surviving
@@ -215,7 +347,8 @@ formula probOfTarget= stateValue1;
 
 formula probOfDetection = probOfTarget
 	* ((f = LOOSE) ? 1.0 : (1.0 / detectionFormationFactor))
-		* max(0.0, sensorRange - (a + 1)) / sensorRange; // +1 because level 0 is one level above ground
+  * ((c = EMC_ON) ? 0.25 : 1.0)
+	* max(0.0, sensorRange - (a + 1)) / sensorRange; // +1 because level 0 is one level above ground
 
 module sensor
 	targetDetected: bool init false;
@@ -224,7 +357,7 @@ endmodule
 
 rewards "util"
 	[tack] satisfied & targetDetected : 1;
-	
+
 	// give slight preference to not adapting
 	[tick] time = 0 &  IncAlt_state=ini_IncAlt_state & DecAlt_state=ini_DecAlt_state & a=init_a & f=init_f : 0.000000001;
 endrewards

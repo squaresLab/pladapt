@@ -2,7 +2,7 @@
  * PLA Adaptation Manager
  *
  * Copyright 2017 Carnegie Mellon University. All Rights Reserved.
- * 
+ *
  * NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING
  * INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON
  * UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS
@@ -31,12 +31,14 @@ namespace am2 {
 
 DartPMCHelper::DartPMCHelper(const Params& params)
 	: evaluationPeriod(params.adaptationManager.adaptationPeriod),
-	  changeAltitudeLatency(params.tactics.changeAltitudeLatency),
-	  maxAltitudeLevel(params.configurationSpace.ALTITUDE_LEVELS - 1),
-	  destructionFormationFactor(params.environmentModel.DESTRUCTION_FORMATION_FACTOR),
-	  threatRange(params.environmentModel.THREAT_RANGE),
-	  detectionFormationFactor(params.environmentModel.TARGET_DETECTION_FORMATION_FACTOR),
-	  sensorRange(params.environmentModel.TARGET_SENSOR_RANGE)
+	changeAltitudeLatency(params.tactics.changeAltitudeLatency),
+	maxAltitudeLevel(params.configurationSpace.ALTITUDE_LEVELS - 1),
+	destructionFormationFactor(params.environmentModel.DESTRUCTION_FORMATION_FACTOR),
+	threatRange(params.environmentModel.THREAT_RANGE),
+	detectionFormationFactor(params.environmentModel.TARGET_DETECTION_FORMATION_FACTOR),
+	sensorRange(params.environmentModel.TARGET_SENSOR_RANGE),
+	hasEcm(params.configurationSpace.hasEcm),
+	twoLevelTactics(params.adaptationManager.twoLevelTactics)
 {
 }
 
@@ -47,34 +49,44 @@ DartPMCHelper::~DartPMCHelper() {
 
 
 std::string DartPMCHelper::generateInitializations(const pladapt::Configuration& currentConfigObj,
-            const pladapt::UtilityFunction& utilityFunction, unsigned horizon) const {
+                                                   const pladapt::UtilityFunction& utilityFunction, unsigned horizon) const {
 
-    auto& config = dynamic_cast<const DartConfiguration&>(currentConfigObj);
+	auto& config = dynamic_cast<const DartConfiguration&>(currentConfigObj);
 
 	stringstream initialState;
 	initialState << "const double PERIOD = " << evaluationPeriod << ';' << endl;
 	initialState << "const int HORIZON = " << horizon << ';' << endl;
 	initialState << "const double IncAlt_LATENCY = " << changeAltitudeLatency
-			<< ';' << endl;
+	             << ';' << endl;
 	initialState << "const double DecAlt_LATENCY = " << changeAltitudeLatency
-			<< ';' << endl;
+	             << ';' << endl;
 	initialState << "const int MAX_ALT_LEVEL = " << maxAltitudeLevel << ';'
-			<< endl;
+	             << endl;
 	initialState << "const double destructionFormationFactor = "
-			<< destructionFormationFactor << ';' << endl;
+	             << destructionFormationFactor << ';' << endl;
 	initialState << "const double threatRange = " << threatRange << ';' << endl;
 	initialState << "const double detectionFormationFactor = "
-			<< detectionFormationFactor << ';' << endl;
+	             << detectionFormationFactor << ';' << endl;
 	initialState << "const double sensorRange = " << sensorRange << ';' << endl;
 	initialState << "const init_a = " << config.getAltitudeLevel() << ';'
-			<< endl;
+	             << endl;
+	initialState << "const init_c = " << config.getEcm() << ';'
+	             << endl;
 	initialState << "const init_f = " << config.getFormation() << ';' << endl;
+	initialState << "const bool ECM_ENABLED = " << (hasEcm ? "true" : "false")
+	             << ';' << endl;
+	initialState << "const bool TWO_LEVEL_ENABLED = " << (twoLevelTactics ? "true" : "false")
+ 	             << ';' << endl;
 	initialState << "const int ini_IncAlt_state = " << config.getTtcIncAlt()
-			<< ';' << endl;
+	             << ';' << endl;
 	initialState << "const int ini_DecAlt_state = " << config.getTtcDecAlt()
-			<< ';' << endl;
+	             << ';' << endl;
+	initialState << "const int ini_IncAlt2_state = " << config.getTtcIncAlt2()
+ 	             << ';' << endl;
+ 	initialState << "const int ini_DecAlt2_state = " << config.getTtcDecAlt2()
+ 	             << ';' << endl;
 
-    return initialState.str();
+	return initialState.str();
 }
 
 } /* namespace am2 */

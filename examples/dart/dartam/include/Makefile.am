@@ -6,5 +6,5 @@ include_HEADERS = dartam/DartAdaptationManager.h dartam/DartConfiguration.h \
 	dartam/DeterministicTargetSensor.h dartam/DeterministicThreat.h \
 	dartam/EnvironmentMonitor.h dartam/Parameters.h dartam/RandomSeed.h \
 	dartam/RealEnvironment.h dartam/Route.h dartam/Sensor.h \
-	dartam/TargetSensor.h dartam/Threat.h
-	
+	dartam/TargetSensor.h dartam/Threat.h \
+	dartam/HybridAdaptationManager.h dartam/PlanDB.h dartam/State.h
