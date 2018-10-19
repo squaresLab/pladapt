@@ -23,12 +23,7 @@ namespace pladapt {
 	TacticList SASSAdaptationManager::evaluate(const Configuration& currentConfigObj, const EnvironmentDTMCPartitioned& envDTMC,
         const UtilityFunction& utilityFunction, unsigned horizon){
 
-		const char* cmd = "echo test";	
-
-		//bp::system("echo test", bp::std_out > stdout, bp::std_err >
-		//stderr, bp::std_in < stdin);
-
-		cout << exec("echo testing");
+		cout << pladapt::exec("echo testing");
 
 		set<string> str { "GoTight" };
     	return str;
