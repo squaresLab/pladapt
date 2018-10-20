@@ -36,6 +36,17 @@ struct SensorResult {
 	Coordinate cellPosition; /**< cell that was sensed */
 	unsigned observations; /**< number of observations taken */
 	unsigned detections; /**< number of observations that resulted in a detection */
+        friend class boost::serialization::access;
+        // When the class Archive corresponds to an output archive, the
+        // & operator is defined similar to <<.  Likewise, when the class Archive
+        // is a type of input archive the & operator is defined similar to >>.
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & cellPosition;
+            ar & observations;
+            ar & detections;
+        }
 };
 
 using SensorResults = std::vector<SensorResult>;

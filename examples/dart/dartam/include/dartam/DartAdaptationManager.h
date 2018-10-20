@@ -31,6 +31,10 @@
 #include <vector>
 #include <memory>
 
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #ifdef PLADAPT_SUPPORTS_CE
 #define DART_USE_CE 1
 #else
@@ -83,6 +87,27 @@ struct DartMonitoringInfo {
 	 * in the route, where H is the look-ahead horizon
 	 */
 	SensorResults targetSensing;
+        
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & position;
+            ar & altitude;
+            ar & directionX;
+            ar & directionY;
+            ar & formation;
+            ar & ttcIncAlt;
+            ar & ttcDecAlt;
+            ar & ttcIncAlt2;
+            ar & ttcDecAlt2;
+            ar & ecm;
+            ar & ttcFormationChange;
+            ar & timestep;
+            ar & threatSensing;
+            ar & targetSensing;
+        }
+        
 };
 
 
