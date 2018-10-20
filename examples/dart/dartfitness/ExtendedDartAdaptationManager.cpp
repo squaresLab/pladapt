@@ -112,5 +112,24 @@ void DartAdaptationManager::instantiateAdaptationMgr(const Params& params) {
 	cout << "done" << endl;
 }
 
+pladapt::TacticList DartAdaptationManager::decideAdaptation(
+		const DartMonitoringInfo& monitoringInfo) {
+
+	/* update environment */
+	pEnvThreatMonitor->update(monitoringInfo.threatSensing);
+	pEnvTargetMonitor->update(monitoringInfo.targetSensing);
+
+	/* build env model with information collected so far */
+	Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
+	DartDTMCEnvironment threatDTMC(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment targetDTMC(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	pladapt::EnvironmentDTMCPartitioned jointEnv = pladapt::EnvironmentDTMCPartitioned::createJointDTMC(threatDTMC, targetDTMC);
+
+	/* make adaptation decision */
+	//adaptMgr->setDebug(monitoringInfo.position.x == 4);
+	return adaptMgr->evaluate(convertToDiscreteConfiguration(monitoringInfo), jointEnv, *pUtilityFunction, params.adaptationManager.HORIZON);
+}
+
+
 } /* namespace am2 */
 } /* namespace dart */
