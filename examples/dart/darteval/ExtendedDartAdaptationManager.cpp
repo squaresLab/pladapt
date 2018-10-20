@@ -8,6 +8,13 @@
 #include <dartam/DartPMCHelper.h>
 #include <math.h>
 
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <fstream>
+// include this header to serialize vectors
+#include <boost/serialization/vector.hpp>
+
 #if DART_USE_CE
 #include <pladapt/CEAdaptationManager.h>
 #endif
@@ -110,6 +117,62 @@ void DartAdaptationManager::instantiateAdaptationMgr(const Params& params) {
 	}
 
 	cout << "done" << endl;
+}
+
+static std::string exec(const char* cmd) {
+    		std::array<char, 128> buffer;
+    		std::string result;
+    		std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    		if (!pipe) throw std::runtime_error("popen() failed!");
+    		while (!feof(pipe.get())) {
+        		if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+            		result += buffer.data();
+    		}
+    		return result;
+	}
+
+pladapt::TacticList DartAdaptationManager::decideAdaptation(
+		const DartMonitoringInfo& monitoringInfo) {
+
+	/* update environment */
+        // this is type EnvironmentMonitor
+	pEnvThreatMonitor->update(monitoringInfo.threatSensing);
+	pEnvTargetMonitor->update(monitoringInfo.targetSensing);
+
+	/* build env model with information collected so far */
+	Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
+	DartDTMCEnvironment threatDTMC(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	DartDTMCEnvironment targetDTMC(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
+	pladapt::EnvironmentDTMCPartitioned jointEnv = pladapt::EnvironmentDTMCPartitioned::createJointDTMC(threatDTMC, targetDTMC);
+
+        // we must serialize the system state, aka monitoring ingo
+        // and we need to pass the true enviroment state somehow
+        // create and open a character archive for output
+        std::ofstream ofs("monitoring.ser");
+
+        // save data to archive
+        {
+            boost::archive::text_oarchive oa(ofs);
+            // write class instance to archive
+            oa << monitoringInfo;
+            // archive and stream closed when destructors are called
+        }
+        // ... some time later restore the class instance to its orginal state
+        DartMonitoringInfo newm;
+        {
+            // create and open an archive for input
+            std::ifstream ifs("monitoring.ser");
+            boost::archive::text_iarchive ia(ifs);
+            // read class state from archive
+            ia >> newm;
+            // archive and stream closed when destructors are called
+        }
+        
+        cout << exec("./runSASS.sh");
+        
+	/* make adaptation decision */
+	//adaptMgr->setDebug(monitoringInfo.position.x == 4);
+	return adaptMgr->evaluate(convertToDiscreteConfiguration(monitoringInfo), jointEnv, *pUtilityFunction, params.adaptationManager.HORIZON);
 }
 
 } /* namespace am2 */
