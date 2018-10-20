@@ -38,6 +38,13 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/moment.hpp>
 
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <fstream>
+// include this header to serialize vectors
+#include <boost/serialization/vector.hpp>
+
 using namespace std;
 using namespace pladapt;
 
@@ -271,6 +278,20 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 			tactics = adaptMgr.decideAdaptation(monitoringInfo);
 			auto delta = myclock::now() - startTime;
 			double deltaMsec = chrono::duration_cast<chrono::duration<double, std::milli>>(delta).count();
+      
+      
+      // test serialization
+      std::ofstream ofs("RealEnv.ser");
+
+        {
+            boost::archive::text_oarchive oa(ofs);
+            // write class instance to archive
+            oa << threatEnv;
+            oa << targetEnv;
+            // archive and stream closed when destructors are called
+        }
+                        
+                        
       if(deltaMsec > 2.0f){
         decisionTimeStats(deltaMsec);
       } else {
