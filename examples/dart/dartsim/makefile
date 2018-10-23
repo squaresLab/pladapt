@@ -1,7 +1,7 @@
 CXXFLAGS=-std=c++11 -O3 -Wall -fmessage-length=0
 
 OBJS=main.o Simulation.o
-LDLIBS=-ldartam
+LDLIBS=-lboost_serialization -ldartam
 TARGET=dartsim
 CPPFLAGS=-I../dartam/include -I../../../include
 LDFLAGS=-L../dartam/build/src/.libs
