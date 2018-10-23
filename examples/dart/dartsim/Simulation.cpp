@@ -56,6 +56,8 @@ using Stats = boost::accumulators::accumulator_set<double,
 namespace dart {
 namespace am2 {
 
+const bool PRETTY_PRINT = false;
+    
 const string INC_ALTITUDE = "IncAlt";
 const string DEC_ALTITUDE = "DecAlt";
 const string INC_ALTITUDE2 = "IncAlt2";
@@ -103,7 +105,9 @@ DartConfiguration executeTactic(string tactic, const DartConfiguration& config,
 					adaptMgrParams.adaptationPeriod);
 
 	auto newConfig = config;
-	cout << "executing tactic " << tactic << endl;
+        if (PRETTY_PRINT){
+            cout << "executing tactic " << tactic << endl;
+        }
 	if (tactic == INC_ALTITUDE) {
 		if (changeAltitudePeriods > 0) {
 			newConfig.setTtcIncAlt(changeAltitudePeriods);
@@ -184,21 +188,23 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 
 	unsigned pathLength = route.size();
 	char screen[pathLength][params.configurationSpace.ALTITUDE_LEVELS + 2];
-	for (unsigned p = 0; p < pathLength; p++) {
-		for (unsigned h = 0; h < params.configurationSpace.ALTITUDE_LEVELS; h++) {
-			screen[p][h] = ' ';
-		}
-		if (threatEnv.isObjectAt(route.at(p))) {
-			screen[p][SCREEN_THREATS] = '^';
-		} else {
-			screen[p][SCREEN_THREATS] = ' ';
-		}
-		if (targetEnv.isObjectAt(route.at(p))) {
-			screen[p][SCREEN_TARGETS] = 'T';
-		} else {
-			screen[p][SCREEN_TARGETS] = ' ';
-		}
-	}
+        if (PRETTY_PRINT){
+            for (unsigned p = 0; p < pathLength; p++) {
+                    for (unsigned h = 0; h < params.configurationSpace.ALTITUDE_LEVELS; h++) {
+                            screen[p][h] = ' ';
+                    }
+                    if (threatEnv.isObjectAt(route.at(p))) {
+                            screen[p][SCREEN_THREATS] = '^';
+                    } else {
+                            screen[p][SCREEN_THREATS] = ' ';
+                    }
+                    if (targetEnv.isObjectAt(route.at(p))) {
+                            screen[p][SCREEN_TARGETS] = 'T';
+                    } else {
+                            screen[p][SCREEN_TARGETS] = ' ';
+                    }
+            }
+        }
 
 
 	Stats decisionTimeStats;
@@ -219,8 +225,9 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 	auto routeIt = route.begin();
 	while (routeIt != route.end()) {
 		position = *routeIt;
-
-		cout << "current position: " << position << endl;
+                if (PRETTY_PRINT){
+                    cout << "current position: " << position << endl;
+                }
 
 		/*
 		 * collect monitoring info
@@ -321,23 +328,30 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 			                              params.adaptationManager, params.configurationSpace);
 		}
 
+            
 		/* update display */
-		screen[screenPosition][currentConfig.getAltitudeLevel()] =
-				(currentConfig.getFormation()
-						== DartConfiguration::Formation::LOOSE) ?
-						(currentConfig.getEcm() ? '@' : '#') :
-						(currentConfig.getEcm() ? '0' : '*');
+                if (PRETTY_PRINT){
+                    screen[screenPosition][currentConfig.getAltitudeLevel()] =
+                                    (currentConfig.getFormation()
+                                                    == DartConfiguration::Formation::LOOSE) ?
+                                                    (currentConfig.getEcm() ? '@' : '#') :
+                                                    (currentConfig.getEcm() ? '0' : '*');
+                }
 
 		/* simulate threats */
 		destroyed = pThreatSim->isDestroyed(threatEnv, currentConfig, position);
 		if (destroyed) {
-			cout << "Team destroyed at position " << position << endl;
+                        if (PRETTY_PRINT){ 
+                            cout << "Team destroyed at position " << position << endl;
+                        }
 			break;
 		}
 
 		/* simulate target detection */
 		if (pTargetSensor->sense(currentConfig, targetEnv.isObjectAt(position))) {
+                    if (PRETTY_PRINT){
 			cout << "Target detected at " << position << endl;
+                    }
 			targetsDetected++;
       currentConfig.setTargetDetected(true);
 			screen[screenPosition][SCREEN_TARGETS] = 'X';
@@ -381,6 +395,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 				currentConfig.setAltitudeLevel(currentConfig.getAltitudeLevel() - 2);
 			}
 		}
+    /*
     for (unsigned h = params.configurationSpace.ALTITUDE_LEVELS; h > 0; h--) {
       cout << h-1;
   		for (unsigned p = 0; p < pathLength; p++) {
@@ -395,27 +410,32 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
   		}
   		cout << endl;
   	}
+     */
 
 		currentConfig.setTimestep(timestep);
 		timestep++;
 	}
 
 	if (!destroyed) {
+            if (PRETTY_PRINT){
 		cout << "Total targets detected: " << targetsDetected << endl;
+            }
 	}
 
-	for (unsigned h = params.configurationSpace.ALTITUDE_LEVELS; h > 0 ; h--) {
-		for (unsigned p = 0; p < pathLength; p++) {
-			cout << screen[p][h - 1];
-		}
-		cout << endl;
-	}
-	for (unsigned h = params.configurationSpace.ALTITUDE_LEVELS; h < params.configurationSpace.ALTITUDE_LEVELS + 2; h++) {
-		for (unsigned p = 0; p < pathLength; p++) {
-			cout << screen[p][h];
-		}
-		cout << endl;
-	}
+        if (PRETTY_PRINT){
+            for (unsigned h = params.configurationSpace.ALTITUDE_LEVELS; h > 0 ; h--) {
+                    for (unsigned p = 0; p < pathLength; p++) {
+                            cout << screen[p][h - 1];
+                    }
+                    cout << endl;
+            }
+            for (unsigned h = params.configurationSpace.ALTITUDE_LEVELS; h < params.configurationSpace.ALTITUDE_LEVELS + 2; h++) {
+                    for (unsigned p = 0; p < pathLength; p++) {
+                            cout << screen[p][h];
+                    }
+                    cout << endl;
+            }
+        }
 
 	results.destroyed = destroyed;
 	results.targetsDetected = targetsDetected;
