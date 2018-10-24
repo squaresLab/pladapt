@@ -149,6 +149,14 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
         // and we need to pass the true enviroment state somehow
         // create and open a character archive for output
         std::ofstream ofs("monitoring.ser");
+        
+        //std::stringstream ss;
+        
+        boost::archive::text_oarchive oa(ofs);
+        
+        oa << monitoringInfo;
+        
+        //cout << ss.rdbuf();
 
         // save data to archive
         {
@@ -167,6 +175,15 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
             ia >> newm;
             // archive and stream closed when destructors are called
         }
+        /*
+        std::string cmd = "./runSASS.sh \"" + ss.str() + "\"";
+        
+        char* cmda = new char [cmd.length()+1];
+        strcpy (cmda, cmd.c_str());
+
+        cout << cmda;
+        
+         */
         
         cout << exec("./runSASS.sh");
         

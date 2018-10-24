@@ -23,9 +23,9 @@ namespace pladapt {
 	TacticList SASSAdaptationManager::evaluate(const Configuration& currentConfigObj, const EnvironmentDTMCPartitioned& envDTMC,
         const UtilityFunction& utilityFunction, unsigned horizon){
 
-		cout << pladapt::exec("echo testing");
+		//cout << pladapt::exec("echo testing");
 
-		set<string> str { "GoTight" };
+		set<string> str { "DecAlt" };
     	return str;
      }
         void initialize(std::shared_ptr<const ConfigurationManager> configMgr, const YAML::Node& params){
