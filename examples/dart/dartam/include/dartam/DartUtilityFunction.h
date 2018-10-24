@@ -44,10 +44,11 @@ public:
     virtual double getMultiplicativeUtility(const pladapt::Configuration& config, const pladapt::Environment& env, int time) const;
     virtual double getFinalReward(const pladapt::Configuration& config, const pladapt::Environment& env, int time) const;
     virtual ~DartUtilityFunction();
-
-protected:
+    
     std::shared_ptr<Threat> threat;
     std::shared_ptr<TargetSensor> targetSensor;
+    
+protected:
     double finalReward;
 };
 
