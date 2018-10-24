@@ -1,4 +1,4 @@
-#include <dartfitness/SASSAdaptationManager.h>
+#include <darteval/SASSAdaptationManager.h>
 #include <pladapt/EnvironmentDTMCPartitioned.h>
 #include <pladapt/UtilityFunction.h>
 #include <pladapt/Configuration.h>
@@ -23,11 +23,9 @@ namespace pladapt {
 	TacticList SASSAdaptationManager::evaluate(const Configuration& currentConfigObj, const EnvironmentDTMCPartitioned& envDTMC,
         const UtilityFunction& utilityFunction, unsigned horizon){
 
-		//const char* cmd = "echo test";	
+		//cout << pladapt::exec("echo testing");
 
-		cout << pladapt::exec("echo testing");
-
-		set<string> str { "GoTight" };
+		set<string> str { "DecAlt" };
     	return str;
      }
         void initialize(std::shared_ptr<const ConfigurationManager> configMgr, const YAML::Node& params){
