@@ -15,6 +15,8 @@
 // include this header to serialize vectors
 #include <boost/serialization/vector.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #if DART_USE_CE
 #include <pladapt/CEAdaptationManager.h>
 #endif
@@ -165,16 +167,7 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
             oa << monitoringInfo;
             // archive and stream closed when destructors are called
         }
-        // ... some time later restore the class instance to its orginal state
-        DartMonitoringInfo newm;
-        {
-            // create and open an archive for input
-            std::ifstream ifs("monitoring.ser");
-            boost::archive::text_iarchive ia(ifs);
-            // read class state from archive
-            ia >> newm;
-            // archive and stream closed when destructors are called
-        }
+       
         /*
         std::string cmd = "./runSASS.sh \"" + ss.str() + "\"";
         
@@ -185,11 +178,16 @@ pladapt::TacticList DartAdaptationManager::decideAdaptation(
         
          */
         
-        cout << exec("./runSASS.sh");
+        std::string out = exec("./runSASS.sh");
+
+        std::vector<std::string> v;
+        boost::split(v, out, boost::is_any_of("\n"));
+        
+        return set<string> { v[v.size()-2] };
         
 	/* make adaptation decision */
 	//adaptMgr->setDebug(monitoringInfo.position.x == 4);
-	return adaptMgr->evaluate(convertToDiscreteConfiguration(monitoringInfo), jointEnv, *pUtilityFunction, params.adaptationManager.HORIZON);
+	//return adaptMgr->evaluate(convertToDiscreteConfiguration(monitoringInfo), jointEnv, *pUtilityFunction, params.adaptationManager.HORIZON);
 }
 
 } /* namespace am2 */

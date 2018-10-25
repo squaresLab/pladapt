@@ -1,4 +1,4 @@
-#include <darteval/SASSAdaptationManager.h>
+#include "SASSAdaptationManager.h"
 #include <pladapt/EnvironmentDTMCPartitioned.h>
 #include <pladapt/UtilityFunction.h>
 #include <pladapt/Configuration.h>
@@ -24,7 +24,7 @@ namespace pladapt {
         const UtilityFunction& utilityFunction, unsigned horizon){
 
 		//cout << pladapt::exec("echo testing");
-
+            cout << "testero";
 		set<string> str { "DecAlt" };
     	return str;
      }
