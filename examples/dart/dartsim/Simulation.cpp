@@ -56,7 +56,7 @@ using Stats = boost::accumulators::accumulator_set<double,
 namespace dart {
 namespace am2 {
 
-const bool PRETTY_PRINT = false;
+const bool PRETTY_PRINT = true;
     
 const string INC_ALTITUDE = "IncAlt";
 const string DEC_ALTITUDE = "DecAlt";
