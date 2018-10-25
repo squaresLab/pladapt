@@ -56,7 +56,7 @@ using Stats = boost::accumulators::accumulator_set<double,
 namespace dart {
 namespace am2 {
 
-const bool PRETTY_PRINT = true;
+const bool PRETTY_PRINT = false;
     
 const string INC_ALTITUDE = "IncAlt";
 const string DEC_ALTITUDE = "DecAlt";
@@ -159,7 +159,7 @@ double getMean(const boost::math::beta_distribution<>& beta_distribution){
 
 SimulationResults Simulation::run(const SimulationParams& simParams, const Params& params,
 		const RealEnvironment& threatEnv, const RealEnvironment& targetEnv,
-		const Route& route, DartAdaptationManager& adaptMgr) {
+		const Route& route, DartAdaptationManager& adaptMgr, std::string& plan) {
 	SimulationResults results;
         
 	/*
@@ -276,6 +276,8 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 		Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
 
         auto routeIt = senseRoute.begin();
+        double fitness = 0;
+        double survival = 1;
 	while (routeIt != senseRoute.end()) {
             
             cout << position;
@@ -342,6 +344,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 			assert(strategyIterator != strategy->end());
 			tactics = *strategyIterator;
 		}
+                
 
 		/*
 		 * execute adaptation
@@ -380,14 +383,34 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             //std::shared_ptr<TargetSensor> targetSensor = dartUtil.targetSensor;
             
             // execute tactics
-            for (auto tactic : tactics) {
-			currentConfig = executeTactic(tactic, currentConfig, params.tactics,
+      
+            // Vector of string to save tokens 
+            vector <string> tokens; 
+
+            // stringstream class check1 
+            stringstream check1(plan); 
+
+            string intermediate; 
+
+            // Tokenizing w.r.t. space ' ' 
+            while(getline(check1, intermediate, '_')) 
+            { 
+                tokens.push_back(intermediate); 
+            } 
+    
+            //for (std::string tactic : tokens.at(timestep)) {
+            if (timestep < tokens.size()){
+			currentConfig = executeTactic(tokens[timestep], currentConfig, params.tactics,
 			                              params.adaptationManager, params.configurationSpace);
             }
+            //}
             
             // analyze target and threat chances
             double probOfDestruction = pThreatSim->getProbabilityOfDestruction(currentConfig);
             double probOfDetection = pTargetSensor->getProbabilityOfDetection(currentConfig);
+            
+            survival *= 1-(probOfDestruction * threatP);
+            fitness += survival * targetP*probOfDetection;
             
             cout << probOfDestruction * threatP <<";" << targetP*probOfDetection << " ";
             
@@ -566,6 +589,8 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             }
         }
 
+        cout << fitness << endl;
+        
 	results.destroyed = destroyed;
 	results.targetsDetected = targetsDetected;
 	results.whereDestroyed = position;

@@ -2,7 +2,7 @@
 #include <dartam/DartAdaptationManager.h>
 #include <dartam/DartConfigurationManager.h>
 #include <pladapt/Utils.h>
-#include <darteval/SASSAdaptationManager.h>
+#include "SASSAdaptationManager.h"
 #include <pladapt/SDPRAAdaptationManager.h>
 #include <pladapt/PMCRAAdaptationManager.h>
 #include <dartam/DartPMCHelper.h>

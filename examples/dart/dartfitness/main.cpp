@@ -18,7 +18,7 @@
  * and unlimited distribution. Please see Copyright notice for non-US Government
  * use and distribution.
  ******************************************************************************/
-#include <dartsim/Simulation.h>
+#include "Simulation.h"
 #include <iostream>
 #include <getopt.h>
 #include <cstdlib>
@@ -58,7 +58,8 @@ enum ARGS {
 	TWO_LEVEL_TACTICS,
 	ADAPT_MGR,
 	PRISM_TEMPLATE,
-	OPT_TEST
+	OPT_TEST,
+        PLAN
 #if DART_USE_CE
 	,
 	CE_NONINCREMENTAL,
@@ -98,6 +99,7 @@ static struct option long_options[] = {
 	{"adapt-mgr", required_argument, 0, ADAPT_MGR },
     {"prism-template",  required_argument, 0,  PRISM_TEMPLATE },
 	{"opt-test", no_argument, 0, OPT_TEST },
+        {"plan", required_argument, 0, PLAN},
 #if DART_USE_CE
 	{"ce-nonincremental", no_argument, 0, CE_NONINCREMENTAL },
 	{"ce-hint-weight", required_argument, 0, CE_HINT_WEIGHT },
@@ -128,6 +130,8 @@ int main(int argc, char** argv) {
 	Params adaptParams;
 	bool autoRange = false;
 
+        std::string plan;
+        
 	while (1) {
 		int option_index = 0;
 
@@ -220,6 +224,9 @@ int main(int argc, char** argv) {
 		case OPT_TEST:
 			simParams.optimalityTest = true;
 			break;
+                case PLAN:
+                        plan = optarg;
+                        break;
 #if DART_USE_CE
 		case CE_NONINCREMENTAL:
 			adaptParams.adaptationManager.ce_incremental = false;
@@ -363,9 +370,10 @@ int main(int argc, char** argv) {
 	}
 
 	auto results = Simulation::run(simParams, adaptParams, threatEnv, targetEnv,
-			route, adaptMgr);
+			route, adaptMgr, plan);
 
 	const std::string RESULTS_PREFIX = "out:";
+        /*
 	cout << RESULTS_PREFIX << "destroyed=" << results.destroyed << endl;
 	cout << RESULTS_PREFIX << "targetsDetected=" << results.targetsDetected << endl;
 	cout << RESULTS_PREFIX << "missionSuccess=" << results.missionSuccess << endl;
@@ -376,6 +384,7 @@ int main(int argc, char** argv) {
 			<< ',' << results.decisionTimeAvg
 			<< ',' << results.decisionTimeVar
 			<<  endl;
+         */
 
 	return 0;
 }
