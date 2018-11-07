@@ -327,7 +327,6 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 			currentConfig = executeTactic(tactic, currentConfig, params.tactics,
 			                              params.adaptationManager, params.configurationSpace);
 		}
-
             
 		/* update display */
                 if (PRETTY_PRINT){

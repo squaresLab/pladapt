@@ -57,6 +57,7 @@ namespace dart {
 namespace am2 {
 
 const bool PRETTY_PRINT = false;
+const bool debug = false;
     
 const string INC_ALTITUDE = "IncAlt";
 const string DEC_ALTITUDE = "DecAlt";
@@ -153,6 +154,9 @@ DartConfiguration executeTactic(string tactic, const DartConfiguration& config,
 double getMean(const boost::math::beta_distribution<>& beta_distribution){
     double a = beta_distribution.alpha();
     double b = beta_distribution.beta();
+    if (debug){
+        cout << "beta a"<<a<<" b"<<b;
+    }
     
     return 1 / (1 + (b / a));
 }
@@ -279,8 +283,9 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
         double fitness = 0;
         double survival = 1;
 	while (routeIt != senseRoute.end()) {
-            
-            cout << position;
+            if (debug){
+                cout << position;
+            }
 		position = *routeIt;
                 if (PRETTY_PRINT){
                     cout << "current position: " << position << endl;
@@ -356,8 +361,8 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
                 
                 // START CUSTOM CODE
                  /* update environment */
-	//envThreatMonitor.update(monitoringInfo.threatSensing);
-	//envTargetMonitor.update(monitoringInfo.targetSensing);
+	envThreatMonitor.update(monitoringInfo.threatSensing);
+	envTargetMonitor.update(monitoringInfo.targetSensing);
 
 	/* build env model with information collected so far */
 	//Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
@@ -402,6 +407,11 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             if (timestep < tokens.size()){
 			currentConfig = executeTactic(tokens[timestep], currentConfig, params.tactics,
 			                              params.adaptationManager, params.configurationSpace);
+            
+                if (timestep == 0 && tokens[timestep] == "DecAlt" && currentConfig.getAltitudeLevel() == 0){
+                    cout << "impossible\n";
+                    break;
+                }
             }
             //}
             
@@ -412,8 +422,11 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             survival *= 1-(probOfDestruction * threatP);
             fitness += survival * targetP*probOfDetection;
             
-            cout << probOfDestruction * threatP <<";" << targetP*probOfDetection << " ";
-            
+            if (debug){
+                cout << threatP << ","<<probOfDestruction<<";"<<targetP<<","<<probOfDetection << "\n";
+
+                cout << probOfDestruction * threatP <<";" << targetP*probOfDetection << " ";
+            }
             /* update tactic progress */
 		auto ttcIncAlt = currentConfig.getTtcIncAlt();
 		if (ttcIncAlt > 0) {
@@ -449,8 +462,9 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             
             //cout << threatP*probOfDestruction << ";" << targetP*probOfDetection << " ";
        // }
-        
-        cout << "\n";
+                if(debug){
+                    cout << "\n";
+                }
         
         // END CUSTOM CODE
                 /*
@@ -589,7 +603,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
             }
         }
 
-        cout << fitness << endl;
+        cout << endl << fitness << endl;
         
 	results.destroyed = destroyed;
 	results.targetsDetected = targetsDetected;
