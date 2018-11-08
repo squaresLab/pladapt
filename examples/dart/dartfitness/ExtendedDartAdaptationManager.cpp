@@ -122,57 +122,9 @@ void DartAdaptationManager::instantiateAdaptationMgr(const Params& params) {
 pladapt::TacticList DartAdaptationManager::decideAdaptation(
 		const DartMonitoringInfo& monitoringInfo) {
     
-    DartMonitoringInfo monitoringInfoR;
+	set<string> str { "DecAlt" };
+    	return str;
     
-        // ... some time later restore the class instance to its orginal state
-        {
-            // create and open an archive for input
-            std::ifstream ifs("/home/ckinneer/research/drew/pladapt/examples/dart/darteval/monitoring.ser");
-            boost::archive::text_iarchive ia(ifs);
-            // read class state from archive
-            ia >> monitoringInfoR;
-            // archive and stream closed when destructors are called
-        }
-
-	/* update environment */
-	pEnvThreatMonitor->update(monitoringInfo.threatSensing);
-	pEnvTargetMonitor->update(monitoringInfo.targetSensing);
-
-	/* build env model with information collected so far */
-	Route senseRoute(monitoringInfo.position, monitoringInfo.directionX, monitoringInfo.directionY, params.adaptationManager.HORIZON);
-        
-        // compute utility based on the route and sensor data
-        //cout << "Standby monitoring info...\n";
-        for (int i = 0; i < senseRoute.size(); i++){
-            double threatP = 0;// getMean(pEnvThreatMonitor->getBetaDistribution(senseRoute[i]));
-            double targetP = 0;//getMean(pEnvTargetMonitor->getBetaDistribution(senseRoute[i]));
-            
-            pladapt::UtilityFunction * uf = pUtilityFunction.get();  
-            DartUtilityFunction * dartUtil = static_cast<DartUtilityFunction*>(uf);
-            
-            std::shared_ptr<Threat> threat = dartUtil->threat;
-            std::shared_ptr<TargetSensor> targetSensor = dartUtil->targetSensor;
-            
-            double probOfDestruction = threat->getProbabilityOfDestruction(convertToDiscreteConfiguration(monitoringInfo));
-            double probOfDetection = targetSensor->getProbabilityOfDetection(convertToDiscreteConfiguration(monitoringInfo));
-            
-            //cout << threatP*probOfDestruction << ";" << targetP*probOfDetection << " ";
-            //cout << probOfDestruction << ";" << probOfDetection << " ";
-        }
-        
-        //cout << "\n";
-        
-        
-	DartDTMCEnvironment threatDTMC(*pEnvThreatMonitor, senseRoute, params.adaptationManager.distributionApproximation);
-	DartDTMCEnvironment targetDTMC(*pEnvTargetMonitor, senseRoute, params.adaptationManager.distributionApproximation);
-	pladapt::EnvironmentDTMCPartitioned jointEnv = pladapt::EnvironmentDTMCPartitioned::createJointDTMC(threatDTMC, targetDTMC);
-
-        // 
-        
-	/* make adaptation decision */
-	//adaptMgr->setDebug(monitoringInfo.position.x == 4);
-        //return {"GoLoose"};
-	return adaptMgr->evaluate(convertToDiscreteConfiguration(monitoringInfo), jointEnv, *pUtilityFunction, params.adaptationManager.HORIZON);
 }
 
 
