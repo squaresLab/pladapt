@@ -1,2 +1,2 @@
-cd /home/ckinneer/research/analysis-code
-gradle -q runAdaptor $*
+cd /home/cody/taas/analysis-code
+./gradlew -q runAdaptor $*

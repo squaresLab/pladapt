@@ -236,7 +236,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
   DartMonitoringInfo monitoringInfo;
         {
             // create and open an archive for input
-            std::ifstream ifs("/home/ckinneer/research/drew/pladapt/examples/dart/darteval/monitoring.ser");
+            std::ifstream ifs("/home/cody/taas/pladapt/examples/dart/darteval/monitoring.ser");
             boost::archive::text_iarchive ia(ifs);
             // read class state from archive
             ia >> monitoringInfo;
