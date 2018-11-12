@@ -568,6 +568,7 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 			monitoringInfo.directionX = routeIt->x - position.x;
 			monitoringInfo.directionY = routeIt->y - position.y;
 		} else {
+                        fitness += survival;
 			monitoringInfo.directionX = 0;
 			monitoringInfo.directionY = 0;
 		}
