@@ -85,6 +85,8 @@ std::string DartPMCHelper::generateInitializations(const pladapt::Configuration&
  	             << ';' << endl;
  	initialState << "const int ini_DecAlt2_state = " << config.getTtcDecAlt2()
  	             << ';' << endl;
+	initialState << "const double survival_reward = 1"
+		     << ';' << endl;
 
 	return initialState.str();
 }

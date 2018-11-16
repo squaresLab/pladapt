@@ -16,6 +16,7 @@ mdp
 //const double threatRange
 //const double detectionFormationFactor
 //const double sensorRange
+//const double survival_reward
 
 
 //#init
@@ -356,7 +357,8 @@ module sensor
 endmodule
 
 rewards "util"
-	[tack] satisfied & targetDetected : 1;
+	[tack] (time < HORIZON) & satisfied & targetDetected : 1;
+	[tack] (time = HORIZON) & satisfied : (targetDetected ? (survival_reward/2) : 0) + survival_reward;
 
 	// give slight preference to not adapting
 	[tick] time = 0 &  IncAlt_state=ini_IncAlt_state & DecAlt_state=ini_DecAlt_state & a=init_a & f=init_f : 0.000000001;

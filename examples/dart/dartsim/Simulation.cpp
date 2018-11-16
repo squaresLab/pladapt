@@ -326,6 +326,9 @@ SimulationResults Simulation::run(const SimulationParams& simParams, const Param
 		for (auto tactic : tactics) {
 			currentConfig = executeTactic(tactic, currentConfig, params.tactics,
 			                              params.adaptationManager, params.configurationSpace);
+			if (PRETTY_PRINT){
+				cout << "Executing tactic: " << tactic << endl;
+			}
 		}
             
 		/* update display */
