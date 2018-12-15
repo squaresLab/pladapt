@@ -1,0 +1,17 @@
+22:17:49 **** Build of configuration Default for project dartsim ****
+make all 
+g++ -std=c++11 -O3 -Wall -fmessage-length=0 -g -I../dartam/include -I../../../include  -c -o main.o main.cpp
+g++ -std=c++11 -O3 -Wall -fmessage-length=0 -g -I../dartam/include -I../../../include  -c -o Simulation.o Simulation.cpp
+g++ -o dartsim main.o Simulation.o -L../dartam/build/src/.libs -ldartam
+22:18:14 **** Incremental Build of configuration Default for project dartsim ****
+make all 
+make: Nothing to be done for 'all'.
+22:19:39 **** Incremental Build of configuration Default for project dartsim ****
+make all 
+make: Nothing to be done for 'all'.
+22:21:29 **** Incremental Build of configuration Default for project dartsim ****
+make all 
+make: Nothing to be done for 'all'.
+22:22:29 **** Incremental Build of configuration Default for project dartsim ****
+make all 
+make: Nothing to be done for 'all'.
